@@ -3,6 +3,7 @@
 An AI-powered system for analyzing image authenticity using a
 combination of deterministic media analysis, tool-based architecture,
 and LLM-assisted reasoning.
+The project includes an evaluation harness that compares rule-based and LLM-assisted reasoning modes across latency, fallback behavior, output completeness, and expected signal detection.
 
 The project demonstrates modern AI system design patterns including:
 

@@ -13,6 +13,7 @@ class GraphState(TypedDict, total=False):
     analysis_result: Dict[str, Any]
 
     flags: List[str]
+    reasoning_mode: str
     reasoning: str
     confidence_explanation: str
     authenticity_score: float

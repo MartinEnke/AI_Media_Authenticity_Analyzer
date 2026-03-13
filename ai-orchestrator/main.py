@@ -19,6 +19,7 @@ def main():
         "mimetype": request.mimetype,
         "claim": request.claim,
         "flags": [],
+        "reasoning_mode": data.get("reasoning_mode", "llm"),
     })
 
     technical_details = {

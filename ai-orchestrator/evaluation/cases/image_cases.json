@@ -1,0 +1,20 @@
+[
+  {
+    "id": "case_001",
+    "file_path": "/Users/martinenke/Desktop/test.png",
+    "filename": "test.png",
+    "media_type": "image",
+    "mimetype": "image/png",
+    "claim": "Is this image AI-generated?",
+    "expected_min_flags": 2
+  },
+  {
+    "id": "case_002",
+    "file_path": "/Users/martinenke/Desktop/test.png",
+    "filename": "test.png",
+    "media_type": "image",
+    "mimetype": "image/png",
+    "claim": "Does this image look manipulated?",
+    "expected_min_flags": 2
+  }
+]

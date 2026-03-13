@@ -4,6 +4,8 @@ from analyzers.image_analyzer import analyze_image
 from analyzers.audio_analyzer import analyze_audio
 from tools.security_tools import security_scan_tool
 from utils.llm_reasoning import get_llm_reasoning
+from utils.reasoning_builder import build_reasoning
+from utils.llm_reasoning import get_llm_reasoning
 
 
 def intake_node(state: GraphState) -> GraphState:
@@ -49,12 +51,22 @@ def audio_analysis_node(state: GraphState) -> GraphState:
 
 
 def reasoning_node(state: GraphState) -> GraphState:
-    reasoning_result = get_llm_reasoning(
-        flags=state.get("flags", []),
-        analysis=state.get("analysis_result", {}),
-        security=state.get("security_result", {}),
-        claim=state.get("claim"),
-    )
+    reasoning_mode = state.get("reasoning_mode", "llm")
+
+    if reasoning_mode == "rule":
+        reasoning_result = build_reasoning(
+            flags=state.get("flags", []),
+            analysis=state.get("analysis_result", {}),
+            security=state.get("security_result", {}),
+            claim=state.get("claim"),
+        )
+    else:
+        reasoning_result = get_llm_reasoning(
+            flags=state.get("flags", []),
+            analysis=state.get("analysis_result", {}),
+            security=state.get("security_result", {}),
+            claim=state.get("claim"),
+        )
 
     state["reasoning"] = reasoning_result.get("reasoning", "")
     state["confidence_explanation"] = reasoning_result.get("confidence_explanation", "")
