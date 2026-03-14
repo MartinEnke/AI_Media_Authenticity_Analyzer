@@ -1,20 +1,90 @@
 [
   {
-    "id": "case_001",
-    "file_path": "/Users/martinenke/Desktop/test.png",
-    "filename": "test.png",
+    "id": "her_real_portrait_01",
+    "file_path": "evaluation/dataset/her_real_portrait_01.png",
+    "filename": "her_real_portrait_01.png",
     "media_type": "image",
     "mimetype": "image/png",
     "claim": "Is this image AI-generated?",
+    "label": "real",
+    "expected_risk": "low",
+    "expected_min_flags": 0
+  },
+  {
+    "id": "her_real_portrait_02",
+    "file_path": "evaluation/dataset/her_real_portrait_02.png",
+    "filename": "her_real_portrait_02.png",
+    "media_type": "image",
+    "mimetype": "image/png",
+    "claim": "Is this image AI-generated?",
+    "label": "real",
+    "expected_risk": "low",
+    "expected_min_flags": 0
+  },
+  {
+    "id": "her_ai_portrait_01",
+    "file_path": "evaluation/dataset/her_ai_portrait_01.png",
+    "filename": "her_ai_portrait_01.png",
+    "media_type": "image",
+    "mimetype": "image/png",
+    "claim": "Is this image AI-generated?",
+    "label": "ai_generated",
+    "expected_risk": "medium",
     "expected_min_flags": 2
   },
   {
-    "id": "case_002",
-    "file_path": "/Users/martinenke/Desktop/test.png",
-    "filename": "test.png",
+    "id": "her_ai_portrait_02",
+    "file_path": "evaluation/dataset/her_ai_portrait_02.png",
+    "filename": "her_ai_portrait_02.png",
     "media_type": "image",
     "mimetype": "image/png",
-    "claim": "Does this image look manipulated?",
+    "claim": "Is this image AI-generated?",
+    "label": "ai_generated",
+    "expected_risk": "medium",
+    "expected_min_flags": 2
+  },
+  {
+    "id": "me_real_portrait_01",
+    "file_path": "evaluation/dataset/me_real_portrait_01.png",
+    "filename": "me_real_portrait_01.png",
+    "media_type": "image",
+    "mimetype": "image/png",
+    "claim": "Is this image AI-generated?",
+    "label": "real",
+    "expected_risk": "low",
+    "expected_min_flags": 0
+  },
+  {
+    "id": "me_real_portrait_02",
+    "file_path": "evaluation/dataset/me_real_portrait_02.png",
+    "filename": "me_real_portrait_02.png",
+    "media_type": "image",
+    "mimetype": "image/png",
+    "claim": "Is this image AI-generated?",
+    "label": "real",
+    "expected_risk": "low",
+    "expected_min_flags": 0
+  },
+  {
+    "id": "me_ai_portrait_01",
+    "file_path": "evaluation/dataset/me_ai_portrait_01.png",
+    "filename": "me_ai_portrait_01.png",
+    "media_type": "image",
+    "mimetype": "image/png",
+    "claim": "Is this image AI-generated?",
+    "label": "ai_generated",
+    "expected_risk": "medium",
+    "expected_min_flags": 2
+  },
+  {
+    "id": "me_ai_portrait_02",
+    "file_path": "evaluation/dataset/me_ai_portrait_02.png",
+    "filename": "me_ai_portrait_02.png",
+    "media_type": "image",
+    "mimetype": "image/png",
+    "claim": "Is this image AI-generated?",
+    "label": "ai_generated",
+    "expected_risk": "medium",
     "expected_min_flags": 2
   }
 ]

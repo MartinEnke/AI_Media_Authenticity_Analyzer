@@ -1,0 +1,40 @@
+trigger:
+  - main
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  PYTHON_VERSION: "3.11"
+
+steps:
+  - checkout: self
+    displayName: "Checkout repository"
+
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: "$(PYTHON_VERSION)"
+    displayName: "Use Python $(PYTHON_VERSION)"
+
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -r ai-orchestrator/requirements-devops.txt
+    displayName: "Install Python dependencies"
+
+  - script: |
+      cd ai-orchestrator
+      python evaluation/evaluator.py --cases evaluation/cases/image_cases_ci.json
+    displayName: "Run evaluation"
+
+  - script: |
+      cd ai-orchestrator
+      python evaluation/report_generator.py
+    displayName: "Generate evaluation report"
+
+  - publish: ai-orchestrator/evaluation/results.json
+    artifact: evaluation-results
+    displayName: "Publish evaluation results"
+
+  - publish: ai-orchestrator/evaluation/report.md
+    artifact: evaluation-report
+    displayName: "Publish evaluation report"

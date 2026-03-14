@@ -8,14 +8,19 @@ sys.path.append(str(BASE_DIR))
 
 from graph import build_graph
 
+import argparse
 
-CASES_PATH = BASE_DIR / "evaluation" / "cases" / "image_cases.json"
+
+DEFAULT_CASES_PATH = BASE_DIR / "evaluation" / "cases" / "image_cases.json"
 RESULTS_PATH = BASE_DIR / "evaluation" / "results.json"
 
 
-def load_cases():
-    with open(CASES_PATH, "r", encoding="utf-8") as f:
+def load_cases(cases_path):
+    with open(cases_path, "r", encoding="utf-8") as f:
         return json.load(f)
+    
+def resolve_case_path(path_str: str) -> str:
+    return str((BASE_DIR / path_str).resolve())
 
 
 def run_case(app, case, reasoning_mode):
@@ -23,7 +28,7 @@ def run_case(app, case, reasoning_mode):
 
     result = app.invoke({
         "request_id": case["id"],
-        "file_path": case["file_path"],
+        "file_path": resolve_case_path(case["file_path"]),
         "filename": case["filename"],
         "media_type": case["media_type"],
         "mimetype": case["mimetype"],
@@ -40,6 +45,10 @@ def run_case(app, case, reasoning_mode):
 
     fallback_used = "fallback" in confidence_text.lower()
     expected_min_flags = case.get("expected_min_flags", 0)
+
+    expected_risk = case.get("expected_risk")
+    predicted_risk = result.get("risk_level")
+    risk_correct = expected_risk == predicted_risk
 
     output = {
         "case_id": case["id"],
@@ -61,13 +70,25 @@ def run_case(app, case, reasoning_mode):
         "summary": result.get("summary", ""),
         "reasoning": reasoning_text,
         "confidence_explanation": confidence_text,
+        "label": case.get("label"),
+        "expected_risk": expected_risk,
+        "predicted_risk": predicted_risk,
+        "risk_correct": risk_correct,
     }
 
     return output
 
 
 def main():
-    cases = load_cases()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--cases",
+        default=str(DEFAULT_CASES_PATH),
+        help="Path to the evaluation cases JSON file"
+    )
+    args = parser.parse_args()
+
+    cases = load_cases(args.cases)
     app = build_graph()
 
     all_results = []

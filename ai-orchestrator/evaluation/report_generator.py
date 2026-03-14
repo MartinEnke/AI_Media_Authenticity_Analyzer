@@ -38,6 +38,9 @@ def summarize_by_mode(results):
             expected_flag_pass_rate = round(
                 sum(1 for x in valid_items if x.get("expected_min_flags_passed")) / len(valid_items), 2
             )
+            risk_accuracy = round(
+                sum(1 for x in valid_items if x.get("risk_correct")) / len(valid_items), 2
+            )
         else:
             avg_latency = None
             avg_score = None
@@ -48,6 +51,7 @@ def summarize_by_mode(results):
             avg_reasoning_length = 0
             avg_confidence_length = 0
             expected_flag_pass_rate = 0
+            risk_accuracy = 0
 
         summaries[mode] = {
             "total_cases": len(items),
@@ -62,6 +66,7 @@ def summarize_by_mode(results):
             "avg_reasoning_length": avg_reasoning_length,
             "avg_confidence_length": avg_confidence_length,
             "expected_flag_pass_rate": expected_flag_pass_rate,
+            "risk_accuracy": risk_accuracy,
         }
 
     return summaries
@@ -109,6 +114,10 @@ def build_report(results, summaries):
         lines.append(f"- Summary: {item['summary']}")
         lines.append(f"- Reasoning: {item['reasoning']}")
         lines.append(f"- Confidence: {item['confidence_explanation']}\n")
+        lines.append(f"- Label: {item['label']}")
+        lines.append(f"- Expected risk: {item['expected_risk']}")
+        lines.append(f"- Predicted risk: {item['predicted_risk']}")
+        lines.append(f"- Risk correct: {item['risk_correct']}")
 
     return "\n".join(lines)
 

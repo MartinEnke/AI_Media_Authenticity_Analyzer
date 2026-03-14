@@ -1,0 +1,9 @@
+langgraph
+langchain
+pydantic
+pillow
+numpy
+python-dotenv
+mcp
+google-genai
+fastmcp
