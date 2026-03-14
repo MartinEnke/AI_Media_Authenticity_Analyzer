@@ -1,159 +1,170 @@
 
 # AI Media Authenticity Analyzer
 
-A modular AI engineering project that analyzes images for potential manipulation or AI generation using heuristic analysis, structured reasoning, and automated evaluation pipelines.
+An AI engineering portfolio project that analyzes images for potential manipulation or AI generation using a modular analysis pipeline, structured reasoning, evaluation tooling, and CI-ready infrastructure.
 
-This project demonstrates how to design **AI systems infrastructure**, not just ML models.  
-It focuses on **orchestration, reasoning pipelines, evaluation, and CI automation**.
-
----
-
-# Project Goals
-
-The goal of this project is to demonstrate the ability to design and implement:
-
-- AI orchestration workflows
-- modular AI tool architecture
-- structured reasoning pipelines
-- automated model evaluation
-- CI/CD integration for AI systems
-
-Accuracy is **not the primary goal** of this project.  
-Instead, the focus is on **building robust AI system architecture**.
+The goal of this project is **not to build a perfect AI detector**, but to demonstrate the ability to design and implement a **production-style AI system architecture** including orchestration, evaluation, and explainability.
 
 ---
 
-# System Architecture
+# Project Overview
 
-The system processes an uploaded image and runs it through a modular analysis pipeline.
+This system analyzes media (currently images) and produces:
 
-Pipeline overview:
+• authenticity score  
+• risk level classification  
+• detected heuristic flags  
+• reasoning explanation  
+• confidence explanation  
+• recommended action  
 
-User Claim  
-↓  
-Security Scan  
-↓  
-Image Analysis (heuristics)  
-↓  
-Reasoning Node (structured explanation)  
-↓  
-Risk Classification  
-↓  
-Evaluation & Reporting
-
-The architecture is designed so additional analysis modules (GAN detectors, multimodal models, etc.) can be integrated later.
+The pipeline is built to resemble **real-world AI infrastructure**, where multiple tools contribute signals that are interpreted by a reasoning layer.
 
 ---
 
-# Key Features
+# Architecture
+
+The system uses a modular pipeline orchestrated by **LangGraph**.
+
+```mermaid
+flowchart TD
+
+A[User Claim / Request] --> B[Fastify API Gateway]
+
+B --> C[Python AI Orchestrator]
+
+C --> D[LangGraph Pipeline]
+
+D --> E[Security Scan Tool]
+D --> F[Image Analysis Tool]
+D --> G[Reasoning Module]
+
+E --> H[Scoring Engine]
+F --> H
+G --> H
+
+H --> I[Authenticity Score]
+H --> J[Risk Classification]
+H --> K[Recommended Action]
+
+I --> L[Evaluation Framework]
+J --> L
+K --> L
+
+L --> M[Evaluation Reports]
+
+M --> N[Azure DevOps CI Pipeline]
+```
+
+---
+
+# Pipeline Flow
+
+The image analysis workflow:
+
+```
+Intake
+ → Security Scan
+ → Image Analysis
+ → Prompt Builder
+ → Reasoning Node
+ → Scoring
+ → Output
+```
+
+Each stage contributes structured signals that feed the reasoning system.
+
+---
+
+# Core Features
 
 ## Image Authenticity Heuristics
 
-The analyzer extracts structural signals from images, including:
+The analyzer extracts structural indicators such as:
 
-- aspect ratio anomalies
-- edge density analysis
-- alpha channel presence
-- metadata inspection
-- file signature validation
+• aspect ratio anomalies  
+• edge density  
+• alpha channel presence  
+• EXIF metadata  
+• file signature validation  
+• image size characteristics  
 
-These signals are aggregated into an **authenticity score** and risk classification.
+These signals are converted into an authenticity score.
 
 ---
 
 ## Structured Reasoning Layer
 
-Instead of returning raw model outputs, the system generates:
+Instead of returning raw technical flags, the system generates:
 
-- human‑readable reasoning
-- confidence explanations
-- recommended action
+• summary  
+• reasoning explanation  
+• confidence explanation  
 
-This mirrors how production AI systems often provide **explainability layers**.
-
-Example outputs include:
-
-- authenticity score
-- risk level
-- reasoning explanation
-- confidence explanation
+This simulates explainable reasoning systems often used in production AI tools.
 
 ---
 
-## Modular Tool Architecture
+## Prompt Engineering + Versioning
 
-The project separates logic into independent components:
+The project supports structured prompt experimentation:
 
-- security tools
-- image analysis tools
-- reasoning nodes
-- evaluation utilities
+• prompt templates  
+• prompt builder utilities  
+• prompt preview in outputs  
+• multiple prompt versions (v1 / v2)
 
-This design allows tools to be swapped or extended without changing the full pipeline.
+This allows reasoning behavior to be evaluated across prompt designs.
+
+---
+
+## Tool‑Based Architecture
+
+The system is intentionally modular.
+
+Tools currently include:
+
+• security scan tool  
+• metadata extraction  
+• edge density analysis  
+• image structure flag detection  
+
+This separation allows new tools to be integrated without rewriting the orchestration logic.
 
 ---
 
 ## Evaluation Framework
 
-A built‑in evaluation framework allows testing the pipeline on labeled datasets.
+The project includes a built‑in evaluation system for comparing reasoning strategies.
 
-Evaluation tracks metrics such as:
+Metrics include:
 
-- latency
-- heuristic flags
-- reasoning presence
-- confidence explanation
-- expected risk correctness
+• latency  
+• fallback usage  
+• expected flag thresholds  
+• reasoning length  
+• confidence length  
+• risk classification accuracy  
 
-Results are automatically compiled into structured reports.
+Evaluation artifacts:
 
-Example output:
-
-- `results.json`
-- `report.md`
+```
+evaluation/results.json
+evaluation/report.md
+```
 
 ---
 
 ## Azure DevOps CI Integration
 
-The project includes a CI pipeline configuration using **Azure Pipelines**.
+The repository includes an Azure DevOps pipeline configuration that:
 
-The pipeline automatically:
+• installs dependencies  
+• runs evaluation tests  
+• generates reports  
+• publishes artifacts  
 
-1. installs dependencies
-2. runs evaluation cases
-3. generates evaluation reports
-4. publishes artifacts
-
-Pipeline artifacts:
-
-- evaluation results
-- generated report
-
-This demonstrates **CI automation for AI system evaluation**.
-
----
-
-# Technologies Used
-
-Python
-
-- LangGraph
-- Pydantic
-- Pillow
-- NumPy
-
-Infrastructure
-
-- Azure DevOps Pipelines
-- GitHub integration
-
-Architecture Concepts
-
-- modular AI pipelines
-- evaluation harnesses
-- structured reasoning outputs
-- CI for ML systems
+This demonstrates how AI workflows can integrate into CI/CD pipelines.
 
 ---
 
@@ -161,75 +172,161 @@ Architecture Concepts
 
 Example analysis result:
 
-Authenticity Score: 0.55  
-Risk Level: Medium  
-
-Detected Indicators:
-
-- unusual aspect ratio
-- very low edge density
-- alpha channel presence
-
-Recommended Action:
-
-Manual review recommended due to multiple heuristic indicators.
+```json
+{
+  "authenticity_score": 0.55,
+  "risk_level": "medium",
+  "flags": [
+    "very_low_resolution",
+    "unusual_aspect_ratio",
+    "has_alpha_channel",
+    "very_low_edge_density"
+  ],
+  "summary": "The uploaded image contains indicators that warrant manual review.",
+  "reasoning": "...",
+  "confidence_explanation": "...",
+  "recommended_action": "manual_check"
+}
+```
 
 ---
 
 # Repository Structure
 
+```
 AI_Media_Authenticity_Analyzer
-
-```
-ai-orchestrator/
-    evaluation/
-        evaluator.py
-        report_generator.py
-        cases/
-        dataset/
-    tools/
-    reasoning/
-    security/
-azure-pipelines.yml
-README.md
+│
+├── api-gateway
+│   └── Fastify API server
+│
+├── ai-orchestrator
+│   ├── analyzers
+│   ├── tools
+│   ├── utils
+│   ├── evaluation
+│   │   ├── cases
+│   │   ├── evaluator.py
+│   │   ├── report_generator.py
+│   │   └── reports
+│   │
+│   ├── graph.py
+│   ├── main.py
+│   ├── state.py
+│   └── schemas.py
+│
+├── azure-pipelines.yml
+└── README.md
 ```
 
 ---
 
-# What This Project Demonstrates
+# Technology Stack
 
-This project showcases skills relevant for **AI engineering and backend AI systems**, including:
+Backend  
+Python  
+LangGraph  
+Pydantic  
 
-- AI pipeline orchestration
-- system modularity
-- explainable AI outputs
-- evaluation workflows
-- CI/CD integration for AI systems
+Image Processing  
+Pillow  
+NumPy  
+
+API Layer  
+Node.js  
+Fastify  
+
+Infrastructure  
+Azure DevOps Pipelines  
+GitHub  
 
 ---
 
-# Possible Future Extensions
+# Running the Project
 
-Potential improvements include:
+Clone the repository:
 
-- GAN‑based synthetic image detection
-- multimodal reasoning models
-- vision‑language models
-- larger evaluation datasets
-- automated accuracy thresholds in CI
+```
+git clone https://github.com/<your-username>/AI_Media_Authenticity_Analyzer.git
+cd AI_Media_Authenticity_Analyzer/ai-orchestrator
+```
+
+Create environment:
+
+```
+python -m venv .venv
+source .venv/bin/activate
+```
+
+Install dependencies:
+
+```
+pip install -r requirements-devops.txt
+```
+
+Run analyzer:
+
+```
+python main.py
+```
+
+---
+
+# Quick Demo
+
+```
+python main.py <<'EOF'
+{
+  "request_id":"demo-001",
+  "file_path":"/path/to/image.png",
+  "filename":"image.png",
+  "media_type":"image",
+  "mimetype":"image/png",
+  "claim":"Is this image AI-generated?",
+  "reasoning_mode":"rule",
+  "prompt_version":"v2"
+}
+EOF
+```
+
+---
+
+# Why This Project Is Valuable
+
+This repository demonstrates the ability to build:
+
+• orchestrated AI pipelines  
+• tool‑based AI systems  
+• structured reasoning workflows  
+• prompt experimentation infrastructure  
+• evaluation frameworks  
+• CI/CD‑integrated AI projects  
+
+The focus is on **AI engineering and system design**, not only model usage.
+
+---
+
+# Future Extensions
+
+Possible future improvements:
+
+• multimodal reasoning models  
+• GAN artifact detection  
+• larger benchmark datasets  
+• simple web UI demo  
+• cloud deployment  
 
 ---
 
 # Author
 
-Martin Enke
+Martin Enke  
 
-AI Engineering student focused on:
+AI engineering student focused on:
 
-- AI system design
-- Python backend engineering
-- applied AI infrastructure
-- creative technology and music tools
+• AI systems design  
+• Python backend engineering  
+• applied AI infrastructure  
+• creative technology and audio tools  
 
 ---
 
