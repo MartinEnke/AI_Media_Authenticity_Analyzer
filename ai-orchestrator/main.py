@@ -12,20 +12,22 @@ def main():
 
     app = build_graph()
     result = app.invoke({
-        "request_id": request.request_id,
-        "file_path": request.file_path,
-        "filename": request.filename,
-        "media_type": request.media_type,
-        "mimetype": request.mimetype,
-        "claim": request.claim,
-        "flags": [],
-        "reasoning_mode": data.get("reasoning_mode", "llm"),
-    })
+    "request_id": request.request_id,
+    "file_path": request.file_path,
+    "filename": request.filename,
+    "media_type": request.media_type,
+    "mimetype": request.mimetype,
+    "claim": request.claim,
+    "flags": [],
+    "reasoning_mode": data.get("reasoning_mode", "llm"),
+    "prompt_version": data.get("prompt_version", "v1"),
+})
 
     technical_details = {
         "security": result.get("security_result", {}),
         "analysis": result.get("analysis_result", {}),
         "claim": result.get("claim"),
+        "prompt_preview": result.get("prompt_preview", {}),
     }
 
     response = AnalysisResponse(

@@ -27,15 +27,16 @@ def run_case(app, case, reasoning_mode):
     start = time.perf_counter()
 
     result = app.invoke({
-        "request_id": case["id"],
-        "file_path": resolve_case_path(case["file_path"]),
-        "filename": case["filename"],
-        "media_type": case["media_type"],
-        "mimetype": case["mimetype"],
-        "claim": case.get("claim"),
-        "flags": [],
-        "reasoning_mode": reasoning_mode,
-    })
+    "request_id": case["id"],
+    "file_path": resolve_case_path(case["file_path"]),
+    "filename": case["filename"],
+    "media_type": case["media_type"],
+    "mimetype": case["mimetype"],
+    "claim": case.get("claim"),
+    "flags": [],
+    "reasoning_mode": reasoning_mode,
+    "prompt_version": case.get("prompt_version", "v1"),
+})
 
     latency_ms = round((time.perf_counter() - start) * 1000, 2)
 
@@ -74,6 +75,7 @@ def run_case(app, case, reasoning_mode):
         "expected_risk": expected_risk,
         "predicted_risk": predicted_risk,
         "risk_correct": risk_correct,
+        "prompt_version": case.get("prompt_version", "v1"),
     }
 
     return output

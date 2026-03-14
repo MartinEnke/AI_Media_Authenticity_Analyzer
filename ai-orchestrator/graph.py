@@ -6,6 +6,7 @@ from tools.security_tools import security_scan_tool
 from utils.llm_reasoning import get_llm_reasoning
 from utils.reasoning_builder import build_reasoning
 from utils.llm_reasoning import get_llm_reasoning
+from utils.prompt_builder import build_reasoning_prompt
 
 
 def intake_node(state: GraphState) -> GraphState:
@@ -53,6 +54,16 @@ def audio_analysis_node(state: GraphState) -> GraphState:
 def reasoning_node(state: GraphState) -> GraphState:
     reasoning_mode = state.get("reasoning_mode", "llm")
 
+    prompt_preview = build_reasoning_prompt(
+        claim=state.get("claim"),
+        security=state.get("security_result", {}),
+        analysis=state.get("analysis_result", {}),
+        flags=state.get("flags", []),
+        prompt_version=state.get("prompt_version", "v1"),
+    )
+
+    state["prompt_preview"] = prompt_preview
+
     if reasoning_mode == "rule":
         reasoning_result = build_reasoning(
             flags=state.get("flags", []),
@@ -62,11 +73,12 @@ def reasoning_node(state: GraphState) -> GraphState:
         )
     else:
         reasoning_result = get_llm_reasoning(
-            flags=state.get("flags", []),
-            analysis=state.get("analysis_result", {}),
-            security=state.get("security_result", {}),
-            claim=state.get("claim"),
-        )
+    flags=state.get("flags", []),
+    analysis=state.get("analysis_result", {}),
+    security=state.get("security_result", {}),
+    claim=state.get("claim"),
+    prompt_version=state.get("prompt_version", "v1"),
+)
 
     state["reasoning"] = reasoning_result.get("reasoning", "")
     state["confidence_explanation"] = reasoning_result.get("confidence_explanation", "")

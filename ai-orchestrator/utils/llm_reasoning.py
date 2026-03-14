@@ -3,56 +3,18 @@ import json
 from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
 from google import genai
-import sys
 
 from utils.reasoning_builder import build_reasoning
+from utils.prompt_builder import build_reasoning_prompt
 
-# Load .env explicitly from ai-orchestrator root
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 ENV_PATH = os.path.join(BASE_DIR, ".env")
+
 load_dotenv(dotenv_path=ENV_PATH)
 
 api_key = os.getenv("GEMINI_API_KEY")
 
-client = genai.Client(api_key=api_key)
-
-def build_llm_reasoning_prompt(
-    flags: List[str],
-    analysis: Dict[str, Any],
-    security: Dict[str, Any],
-    claim: Optional[str] = None,
-) -> str:
-    return f"""
-You are an AI media authenticity analysis assistant.
-
-Your task is to interpret technical findings from an image authenticity pipeline.
-
-Rules:
-- Do NOT invent forensic evidence.
-- Treat findings as heuristic indicators, not proof.
-- Mention uncertainty clearly.
-- If a user claim exists, address it.
-- Return STRICT JSON only.
-
-Required JSON format:
-{{
-  "summary": "...",
-  "reasoning": "...",
-  "confidence_explanation": "..."
-}}
-
-User claim:
-{claim or "None"}
-
-Flags:
-{json.dumps(flags, indent=2)}
-
-Security findings:
-{json.dumps(security, indent=2)}
-
-Analysis findings:
-{json.dumps(analysis, indent=2)}
-""".strip()
+client = genai.Client(api_key=api_key) if api_key else None
 
 
 def get_llm_reasoning(
@@ -60,29 +22,38 @@ def get_llm_reasoning(
     analysis: Dict[str, Any],
     security: Dict[str, Any],
     claim: Optional[str] = None,
+    prompt_version: str = "v1",
 ) -> Dict[str, str]:
-    if not api_key:
+    if not api_key or client is None:
         fallback = build_reasoning(
             flags=flags,
             analysis=analysis,
             security=security,
             claim=claim,
         )
-        fallback["confidence_explanation"] += " LLM fallback was used because GEMINI_API_KEY was not found."
+        fallback["confidence_explanation"] += " LLM fallback was used because the external reasoning model was temporarily unavailable."
         return fallback
 
-    prompt = build_llm_reasoning_prompt(
-        flags=flags,
-        analysis=analysis,
-        security=security,
-        claim=claim,
+    prompt_parts = build_reasoning_prompt(
+    claim=claim,
+    security=security,
+    analysis=analysis,
+    flags=flags,
+    prompt_version=prompt_version,
+)
+
+    combined_prompt = (
+        f"{prompt_parts['system_prompt']}\n\n"
+        f"{prompt_parts['user_prompt']}\n\n"
+        "Return valid JSON only with keys: summary, reasoning, confidence_explanation."
     )
 
     try:
         response = client.models.generate_content(
-    model="gemini-2.0-flash",
-    contents=prompt
-)
+            model="gemini-2.0-flash",
+            contents=combined_prompt
+        )
+
         text = response.text.strip()
 
         try:
@@ -91,16 +62,15 @@ def get_llm_reasoning(
             return {
                 "summary": "The uploaded image contains indicators that warrant manual review.",
                 "reasoning": text,
-                "confidence_explanation": "Confidence is limited because the Gemini response could not be parsed as structured JSON.",
+                "confidence_explanation": "Confidence is limited because the model response was not valid JSON.",
             }
 
-    except Exception as e:
-        print(f"Gemini error: {e}", file=sys.stderr)
+    except Exception:
         fallback = build_reasoning(
             flags=flags,
             analysis=analysis,
             security=security,
             claim=claim,
-    )
-    fallback["confidence_explanation"] += " LLM fallback was used because the external reasoning model was temporarily unavailable."
-    return fallback
+        )
+        fallback["confidence_explanation"] += " LLM fallback was used because the external reasoning model was temporarily unavailable."
+        return fallback

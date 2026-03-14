@@ -8,6 +8,8 @@ class GraphState(TypedDict, total=False):
     media_type: str
     mimetype: str
     claim: str
+    prompt_preview: dict
+    prompt_version: str
 
     security_result: Dict[str, Any]
     analysis_result: Dict[str, Any]
@@ -20,3 +22,5 @@ class GraphState(TypedDict, total=False):
     risk_level: str
     recommended_action: str
     summary: str
+    prompt_preview: Dict[str, Any]
+    

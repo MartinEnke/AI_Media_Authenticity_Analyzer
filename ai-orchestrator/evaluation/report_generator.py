@@ -97,7 +97,9 @@ def build_report(results, summaries):
     for item in results:
         if not item:
             continue
-        lines.append(f"### {item.get('case_id')} | mode={item.get('reasoning_mode')}\n")
+        lines.append(
+    f"### {item.get('case_id')} | mode={item.get('reasoning_mode')} | prompt={item.get('prompt_version', 'v1')}\n"
+)
         if "error" in item:
             lines.append(f"- Error: {item['error']}\n")
             continue
@@ -118,6 +120,7 @@ def build_report(results, summaries):
         lines.append(f"- Expected risk: {item['expected_risk']}")
         lines.append(f"- Predicted risk: {item['predicted_risk']}")
         lines.append(f"- Risk correct: {item['risk_correct']}")
+        lines.append(f"- Prompt version: {item.get('prompt_version', 'v1')}")
 
     return "\n".join(lines)
 
