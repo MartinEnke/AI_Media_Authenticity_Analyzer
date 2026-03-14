@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
@@ -13,8 +14,21 @@ ENV_PATH = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path=ENV_PATH)
 
 api_key = os.getenv("GEMINI_API_KEY")
-
 client = genai.Client(api_key=api_key) if api_key else None
+
+
+def strip_markdown_code_fences(text: str) -> str:
+    cleaned = text.strip()
+
+    if cleaned.startswith("```json"):
+        cleaned = cleaned[len("```json"):].strip()
+    elif cleaned.startswith("```"):
+        cleaned = cleaned[len("```"):].strip()
+
+    if cleaned.endswith("```"):
+        cleaned = cleaned[:-3].strip()
+
+    return cleaned
 
 
 def get_llm_reasoning(
@@ -31,16 +45,18 @@ def get_llm_reasoning(
             security=security,
             claim=claim,
         )
-        fallback["confidence_explanation"] += " LLM fallback was used because the external reasoning model was temporarily unavailable."
+        fallback["confidence_explanation"] += (
+            " LLM fallback was used because the external reasoning model was temporarily unavailable."
+        )
         return fallback
 
     prompt_parts = build_reasoning_prompt(
-    claim=claim,
-    security=security,
-    analysis=analysis,
-    flags=flags,
-    prompt_version=prompt_version,
-)
+        claim=claim,
+        security=security,
+        analysis=analysis,
+        flags=flags,
+        prompt_version=prompt_version,
+    )
 
     combined_prompt = (
         f"{prompt_parts['system_prompt']}\n\n"
@@ -50,27 +66,34 @@ def get_llm_reasoning(
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=combined_prompt
+            model="gemini-2.5-flash",
+            contents=combined_prompt,
         )
 
         text = response.text.strip()
+        cleaned_text = strip_markdown_code_fences(text)
 
         try:
-            return json.loads(text)
+            return json.loads(cleaned_text)
         except json.JSONDecodeError:
             return {
                 "summary": "The uploaded image contains indicators that warrant manual review.",
                 "reasoning": text,
-                "confidence_explanation": "Confidence is limited because the model response was not valid JSON.",
+                "confidence_explanation": (
+                    "Confidence is limited because the model response was not valid JSON."
+                ),
             }
 
-    except Exception:
+    except Exception as e:
+        print(f"GEMINI ERROR: {e}", file=sys.stderr)
+
         fallback = build_reasoning(
             flags=flags,
             analysis=analysis,
             security=security,
             claim=claim,
         )
-        fallback["confidence_explanation"] += " LLM fallback was used because the external reasoning model was temporarily unavailable."
+        fallback["confidence_explanation"] += (
+            " LLM fallback was used because the external reasoning model was temporarily unavailable."
+        )
         return fallback

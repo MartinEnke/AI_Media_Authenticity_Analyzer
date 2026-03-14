@@ -5,26 +5,25 @@ const multipart = require("@fastify/multipart");
 const analyzeRoutes = require("./routes/analyze");
 
 async function startServer() {
-  await fastify.register(cors, { origin: true });
+  await fastify.register(cors, {
+    origin: ["http://localhost:3001"],
+  });
+
   await fastify.register(multipart, {
     limits: {
-      fileSize: 20 * 1024 * 1024, // 20 MB
+      fileSize: 20 * 1024 * 1024,
     },
   });
 
-  fastify.get("/health", async () => {
-    return { status: "ok", service: "api-gateway" };
+  fastify.register(analyzeRoutes, {
+    prefix: "/analyze",
   });
 
-  await fastify.register(analyzeRoutes, { prefix: "/analyze" });
+  fastify.get("/health", async () => {
+    return { status: "ok" };
+  });
 
-  try {
-    await fastify.listen({ port: 3000, host: "0.0.0.0" });
-    console.log("API Gateway running on http://localhost:3000");
-  } catch (err) {
-    fastify.log.error(err);
-    process.exit(1);
-  }
+  await fastify.listen({ port: 3000 });
 }
 
 startServer();
