@@ -1,195 +1,238 @@
+
 # AI Media Authenticity Analyzer
 
-An AI-powered system for analyzing image authenticity using a
-combination of deterministic media analysis, tool-based architecture,
-and LLM-assisted reasoning.
-The project includes an evaluation harness that compares rule-based and LLM-assisted reasoning modes across latency, fallback behavior, output completeness, and expected signal detection.
+A modular AI engineering project that analyzes images for potential manipulation or AI generation using heuristic analysis, structured reasoning, and automated evaluation pipelines.
 
-The project demonstrates modern AI system design patterns including:
+This project demonstrates how to design **AI systems infrastructure**, not just ML models.  
+It focuses on **orchestration, reasoning pipelines, evaluation, and CI automation**.
 
--   LangGraph orchestration pipelines
--   MCP (Model Context Protocol) tool architecture
--   modular media analysis tools
--   claim-aware AI reasoning
--   explainable authenticity scoring
--   resilient fallback behavior when LLMs are unavailable
+---
 
-------------------------------------------------------------------------
+# Project Goals
 
-# Architecture
+The goal of this project is to demonstrate the ability to design and implement:
 
-The system processes uploaded media through a multi-stage pipeline:
+- AI orchestration workflows
+- modular AI tool architecture
+- structured reasoning pipelines
+- automated model evaluation
+- CI/CD integration for AI systems
 
-API Gateway (Fastify / Node.js) ↓ Python AI Orchestrator (LangGraph) ↓
-MCP Tool Server ↓ Media Analysis Tools
+Accuracy is **not the primary goal** of this project.  
+Instead, the focus is on **building robust AI system architecture**.
 
-Pipeline stages:
+---
 
-Intake → Security Scan → Image Feature Analysis → AI Reasoning →
-Authenticity Scoring → Output
+# System Architecture
 
-------------------------------------------------------------------------
+The system processes an uploaded image and runs it through a modular analysis pipeline.
+
+Pipeline overview:
+
+User Claim  
+↓  
+Security Scan  
+↓  
+Image Analysis (heuristics)  
+↓  
+Reasoning Node (structured explanation)  
+↓  
+Risk Classification  
+↓  
+Evaluation & Reporting
+
+The architecture is designed so additional analysis modules (GAN detectors, multimodal models, etc.) can be integrated later.
+
+---
 
 # Key Features
 
-## Media Security Validation
+## Image Authenticity Heuristics
 
-The system verifies file integrity before analysis.
+The analyzer extracts structural signals from images, including:
 
-Examples:
+- aspect ratio anomalies
+- edge density analysis
+- alpha channel presence
+- metadata inspection
+- file signature validation
 
--   file signature validation
--   mimetype mismatch detection
--   empty file detection
--   basic tampering signals
+These signals are aggregated into an **authenticity score** and risk classification.
 
-------------------------------------------------------------------------
+---
 
-## Image Structure Analysis
+## Structured Reasoning Layer
 
-The analyzer extracts structural indicators including:
+Instead of returning raw model outputs, the system generates:
 
--   resolution
--   aspect ratio
--   alpha channel presence
--   EXIF metadata
--   edge density
--   file size characteristics
+- human‑readable reasoning
+- confidence explanations
+- recommended action
 
-These signals are used to detect potential:
+This mirrors how production AI systems often provide **explainability layers**.
 
--   synthetic media
--   heavy compositing
--   generated assets
--   suspicious export patterns
+Example outputs include:
 
-------------------------------------------------------------------------
+- authenticity score
+- risk level
+- reasoning explanation
+- confidence explanation
 
-## Explainable AI Reasoning
+---
 
-The system generates a human-readable explanation that interprets
-detected indicators and relates them to the user's question.
+## Modular Tool Architecture
 
-Example claim-aware analysis:
+The project separates logic into independent components:
 
-"Is this image AI-generated?"
+- security tools
+- image analysis tools
+- reasoning nodes
+- evaluation utilities
 
-The system responds with:
+This design allows tools to be swapped or extended without changing the full pipeline.
 
--   summary
--   reasoning
--   confidence explanation
--   recommended action
+---
 
-------------------------------------------------------------------------
+## Evaluation Framework
 
-## MCP Tool Architecture
+A built‑in evaluation framework allows testing the pipeline on labeled datasets.
 
-Analysis functions are exposed as MCP tools:
+Evaluation tracks metrics such as:
 
-security_scan\
-extract_metadata\
-compute_edge_density\
-detect_image_structure_flags
+- latency
+- heuristic flags
+- reasoning presence
+- confidence explanation
+- expected risk correctness
 
-This enables:
+Results are automatically compiled into structured reports.
 
--   modular AI tool orchestration
--   future remote tool execution
--   compatibility with agent-style architectures
+Example output:
 
-------------------------------------------------------------------------
+- `results.json`
+- `report.md`
 
-## LangGraph Orchestration
+---
 
-The analysis pipeline is implemented using LangGraph, enabling:
+## Azure DevOps CI Integration
 
--   modular workflow nodes
--   deterministic + AI reasoning combination
--   future agent tool-calling support
+The project includes a CI pipeline configuration using **Azure Pipelines**.
 
-------------------------------------------------------------------------
+The pipeline automatically:
 
-# Example Response
+1. installs dependencies
+2. runs evaluation cases
+3. generates evaluation reports
+4. publishes artifacts
 
-``` json
-{
-  "authenticity_score": 0.55,
-  "risk_level": "medium",
-  "flags": [
-    "very_low_resolution",
-    "unusual_aspect_ratio",
-    "has_alpha_channel",
-    "very_low_edge_density"
-  ],
-  "summary": "The uploaded image contains indicators that warrant manual review.",
-  "reasoning": "...",
-  "confidence_explanation": "...",
-  "recommended_action": "manual_check"
-}
+Pipeline artifacts:
+
+- evaluation results
+- generated report
+
+This demonstrates **CI automation for AI system evaluation**.
+
+---
+
+# Technologies Used
+
+Python
+
+- LangGraph
+- Pydantic
+- Pillow
+- NumPy
+
+Infrastructure
+
+- Azure DevOps Pipelines
+- GitHub integration
+
+Architecture Concepts
+
+- modular AI pipelines
+- evaluation harnesses
+- structured reasoning outputs
+- CI for ML systems
+
+---
+
+# Example Output
+
+Example analysis result:
+
+Authenticity Score: 0.55  
+Risk Level: Medium  
+
+Detected Indicators:
+
+- unusual aspect ratio
+- very low edge density
+- alpha channel presence
+
+Recommended Action:
+
+Manual review recommended due to multiple heuristic indicators.
+
+---
+
+# Repository Structure
+
+AI_Media_Authenticity_Analyzer
+
+```
+ai-orchestrator/
+    evaluation/
+        evaluator.py
+        report_generator.py
+        cases/
+        dataset/
+    tools/
+    reasoning/
+    security/
+azure-pipelines.yml
+README.md
 ```
 
-------------------------------------------------------------------------
+---
 
-# Technology Stack
+# What This Project Demonstrates
 
-Backend:
+This project showcases skills relevant for **AI engineering and backend AI systems**, including:
 
--   Python
--   LangGraph
--   MCP (Model Context Protocol)
--   Pillow
--   NumPy
+- AI pipeline orchestration
+- system modularity
+- explainable AI outputs
+- evaluation workflows
+- CI/CD integration for AI systems
 
-API Layer:
+---
 
--   Node.js
--   Fastify
+# Possible Future Extensions
 
-AI:
+Potential improvements include:
 
--   Gemini LLM (optional reasoning layer)
--   rule-based fallback reasoning
+- GAN‑based synthetic image detection
+- multimodal reasoning models
+- vision‑language models
+- larger evaluation datasets
+- automated accuracy thresholds in CI
 
-------------------------------------------------------------------------
+---
 
-# Design Goals
+# Author
 
-This project explores how AI systems can combine:
+Martin Enke
 
--   deterministic media analysis
--   modular tool architectures
--   LLM reasoning
--   explainable outputs
+AI Engineering student focused on:
 
-to support **media authenticity assessment**.
+- AI system design
+- Python backend engineering
+- applied AI infrastructure
+- creative technology and music tools
 
-The architecture emphasizes:
+---
 
--   explainability
--   modularity
--   orchestration
--   reliability
+# License
 
-------------------------------------------------------------------------
-
-# Project Status
-
-Current version:
-
-v0.1
-
-Implemented:
-
--   LangGraph orchestration
--   MCP tool server
--   image authenticity heuristics
--   claim-aware reasoning
--   Fastify upload API
-
-Upcoming:
-
--   evaluation framework
--   model comparison
--   audio analysis module
--   GAN artifact detection
+MIT License
