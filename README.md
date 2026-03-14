@@ -1,15 +1,30 @@
 
 # AI Media Authenticity Analyzer
 
-An AI engineering portfolio project that analyzes images for potential manipulation or AI generation using a modular analysis pipeline, structured reasoning, evaluation tooling, and CI-ready infrastructure.
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Node.js](https://img.shields.io/badge/Node.js-Fastify-green)
+![Next.js](https://img.shields.io/badge/Next.js-Frontend-black)
+![LangGraph](https://img.shields.io/badge/LangGraph-Orchestration-purple)
+![Gemini](https://img.shields.io/badge/Gemini-LLM-orange)
 
-The goal of this project is **not to build a perfect AI detector**, but to demonstrate the ability to design and implement a **production-style AI system architecture** including orchestration, evaluation, and explainability.
+An AI engineering portfolio project that analyzes images for potential manipulation or AI generation using a modular analysis pipeline, structured reasoning, evaluation tooling, and CI‑ready infrastructure.
+
+The goal of this project is **not to build a perfect AI detector**, but to demonstrate how to design and implement a **production‑style AI system architecture** including orchestration, explainability, evaluation, and deployment infrastructure.
+
+The system combines:
+
+• tool‑based analysis pipelines  
+• LLM‑assisted reasoning  
+• structured prompt engineering  
+• evaluation tooling  
+• CI/CD configuration  
+• a modern web interface  
 
 ---
 
 # Project Overview
 
-This system analyzes media (currently images) and produces:
+This system analyzes media (currently images) and produces a structured authenticity assessment including:
 
 • authenticity score  
 • risk level classification  
@@ -18,61 +33,53 @@ This system analyzes media (currently images) and produces:
 • confidence explanation  
 • recommended action  
 
-The pipeline is built to resemble **real-world AI infrastructure**, where multiple tools contribute signals that are interpreted by a reasoning layer.
+The architecture reflects how **real‑world AI systems aggregate multiple signals** rather than relying on a single model.
 
 ---
 
 # Architecture
 
-The system uses a modular pipeline orchestrated by **LangGraph**.
+The system uses a modular pipeline orchestrated with **LangGraph**.
 
-```mermaid
-flowchart TD
+User Upload / Claim  
+→ Next.js Frontend  
+→ Fastify API Gateway  
+→ Python AI Orchestrator  
+→ LangGraph Pipeline  
 
-A[User Claim / Request] --> B[Fastify API Gateway]
+Pipeline tools:
 
-B --> C[Python AI Orchestrator]
+• Security Scan Tool  
+• Image Analysis Tool  
+• LLM Reasoning Engine  
 
-C --> D[LangGraph Pipeline]
+Output:
 
-D --> E[Security Scan Tool]
-D --> F[Image Analysis Tool]
-D --> G[Reasoning Module]
+• Authenticity Score  
+• Risk Classification  
+• Recommended Action  
 
-E --> H[Scoring Engine]
-F --> H
-G --> H
+Evaluation system:
 
-H --> I[Authenticity Score]
-H --> J[Risk Classification]
-H --> K[Recommended Action]
-
-I --> L[Evaluation Framework]
-J --> L
-K --> L
-
-L --> M[Evaluation Reports]
-
-M --> N[Azure DevOps CI Pipeline]
-```
+• Results JSON  
+• Markdown Reports  
+• CI Pipeline Integration
 
 ---
 
 # Pipeline Flow
 
-The image analysis workflow:
+Intake  
+→ Security Scan  
+→ Image Analysis  
+→ Prompt Builder  
+→ Reasoning Node  
+→ Scoring Engine  
+→ Output  
 
-```
-Intake
- → Security Scan
- → Image Analysis
- → Prompt Builder
- → Reasoning Node
- → Scoring
- → Output
-```
+Each stage contributes structured signals interpreted by the reasoning layer.
 
-Each stage contributes structured signals that feed the reasoning system.
+This architecture mirrors **production AI workflows where models are only one component of a larger system**.
 
 ---
 
@@ -83,44 +90,58 @@ Each stage contributes structured signals that feed the reasoning system.
 The analyzer extracts structural indicators such as:
 
 • aspect ratio anomalies  
-• edge density  
-• alpha channel presence  
-• EXIF metadata  
+• edge density analysis  
+• alpha channel detection  
+• EXIF metadata inspection  
 • file signature validation  
-• image size characteristics  
+• image dimension checks  
 
-These signals are converted into an authenticity score.
+These indicators feed a heuristic authenticity scoring system.
 
 ---
 
 ## Structured Reasoning Layer
 
-Instead of returning raw technical flags, the system generates:
+Instead of returning raw technical signals, the system generates explainable outputs:
 
 • summary  
 • reasoning explanation  
 • confidence explanation  
 
-This simulates explainable reasoning systems often used in production AI tools.
+This simulates **explainable reasoning layers used in real‑world AI systems**.
+
+---
+
+## Hybrid Reasoning System
+
+Two reasoning strategies are supported:
+
+Rule‑based reasoning  
+Deterministic explanation generated from heuristic findings.
+
+LLM reasoning  
+Google **Gemini** interprets the analysis signals and produces structured reasoning.
+
+The system can switch between reasoning modes for evaluation purposes.
 
 ---
 
 ## Prompt Engineering + Versioning
 
-The project supports structured prompt experimentation:
+The project includes a structured prompt experimentation system:
 
 • prompt templates  
 • prompt builder utilities  
 • prompt preview in outputs  
 • multiple prompt versions (v1 / v2)
 
-This allows reasoning behavior to be evaluated across prompt designs.
+This allows controlled experimentation with LLM reasoning behavior.
 
 ---
 
 ## Tool‑Based Architecture
 
-The system is intentionally modular.
+The pipeline is intentionally modular.
 
 Tools currently include:
 
@@ -129,13 +150,13 @@ Tools currently include:
 • edge density analysis  
 • image structure flag detection  
 
-This separation allows new tools to be integrated without rewriting the orchestration logic.
+New tools can be added without rewriting orchestration logic.
 
 ---
 
-## Evaluation Framework
+# Evaluation Framework
 
-The project includes a built‑in evaluation system for comparing reasoning strategies.
+The repository includes a built‑in evaluation system for benchmarking reasoning strategies.
 
 Metrics include:
 
@@ -143,36 +164,75 @@ Metrics include:
 • fallback usage  
 • expected flag thresholds  
 • reasoning length  
-• confidence length  
-• risk classification accuracy  
+• confidence explanation length  
+• risk classification correctness  
 
 Evaluation artifacts:
 
-```
-evaluation/results.json
-evaluation/report.md
-```
+evaluation/results.json  
+evaluation/report.md  
 
 ---
 
-## Azure DevOps CI Integration
+# Azure DevOps CI Integration
 
-The repository includes an Azure DevOps pipeline configuration that:
+The repository contains an **Azure DevOps pipeline configuration**.
 
-• installs dependencies  
-• runs evaluation tests  
-• generates reports  
-• publishes artifacts  
+The pipeline is designed to:
 
-This demonstrates how AI workflows can integrate into CI/CD pipelines.
+• install dependencies  
+• run evaluation scripts  
+• generate evaluation reports  
+• publish artifacts  
+
+Hosted pipeline execution currently requires Azure hosted parallelism approval for new/free accounts, but the CI configuration demonstrates how AI workflows integrate into CI/CD pipelines.
+
+---
+
+# Web Interface
+
+The project includes a lightweight web UI built with **Next.js**.
+
+Users can:
+
+• upload images  
+• submit authenticity questions  
+• view reasoning explanations  
+• inspect analysis signals  
+
+This demonstrates how an AI analysis backend can be exposed through a modern web interface.
+
+---
+
+# Technology Stack
+
+AI Orchestration  
+Python  
+LangGraph  
+Pydantic  
+
+Image Processing  
+Pillow  
+NumPy  
+
+LLM Integration  
+Google Gemini API  
+
+Backend API  
+Node.js  
+Fastify  
+
+Frontend  
+Next.js  
+
+Infrastructure  
+Azure DevOps Pipelines  
+GitHub  
 
 ---
 
 # Example Output
 
-Example analysis result:
-
-```json
 {
   "authenticity_score": 0.55,
   "risk_level": "medium",
@@ -183,97 +243,55 @@ Example analysis result:
     "very_low_edge_density"
   ],
   "summary": "The uploaded image contains indicators that warrant manual review.",
-  "reasoning": "...",
-  "confidence_explanation": "...",
   "recommended_action": "manual_check"
 }
-```
 
 ---
 
 # Repository Structure
 
-```
 AI_Media_Authenticity_Analyzer
-│
-├── api-gateway
-│   └── Fastify API server
-│
-├── ai-orchestrator
-│   ├── analyzers
-│   ├── tools
-│   ├── utils
-│   ├── evaluation
-│   │   ├── cases
-│   │   ├── evaluator.py
-│   │   ├── report_generator.py
-│   │   └── reports
-│   │
-│   ├── graph.py
-│   ├── main.py
-│   ├── state.py
-│   └── schemas.py
-│
-├── azure-pipelines.yml
-└── README.md
-```
 
----
+frontend  
+Next.js web interface
 
-# Technology Stack
+api-gateway  
+Fastify API server
 
-Backend  
-Python  
-LangGraph  
-Pydantic  
+ai-orchestrator  
+analysis tools  
+LangGraph pipeline  
+evaluation framework
 
-Image Processing  
-Pillow  
-NumPy  
-
-API Layer  
-Node.js  
-Fastify  
-
-Infrastructure  
-Azure DevOps Pipelines  
-GitHub  
+azure-pipelines.yml  
+CI pipeline configuration
 
 ---
 
 # Running the Project
 
-Clone the repository:
+Clone the repository
 
-```
 git clone https://github.com/<your-username>/AI_Media_Authenticity_Analyzer.git
-cd AI_Media_Authenticity_Analyzer/ai-orchestrator
-```
 
-Create environment:
+Create environment
 
-```
+cd ai-orchestrator
 python -m venv .venv
 source .venv/bin/activate
-```
 
-Install dependencies:
+Install dependencies
 
-```
 pip install -r requirements-devops.txt
-```
 
-Run analyzer:
+Run analyzer
 
-```
 python main.py
-```
 
 ---
 
 # Quick Demo
 
-```
 python main.py <<'EOF'
 {
   "request_id":"demo-001",
@@ -282,11 +300,10 @@ python main.py <<'EOF'
   "media_type":"image",
   "mimetype":"image/png",
   "claim":"Is this image AI-generated?",
-  "reasoning_mode":"rule",
+  "reasoning_mode":"llm",
   "prompt_version":"v2"
 }
 EOF
-```
 
 ---
 
@@ -295,35 +312,37 @@ EOF
 This repository demonstrates the ability to build:
 
 • orchestrated AI pipelines  
-• tool‑based AI systems  
-• structured reasoning workflows  
+• tool‑based AI architectures  
+• structured reasoning systems  
 • prompt experimentation infrastructure  
 • evaluation frameworks  
-• CI/CD‑integrated AI projects  
+• CI‑integrated AI workflows  
 
-The focus is on **AI engineering and system design**, not only model usage.
+The focus is on **AI engineering and system design**, not just model usage.
 
 ---
 
 # Future Extensions
 
-Possible future improvements:
+Planned improvements:
 
-• multimodal reasoning models  
-• GAN artifact detection  
+• audio deepfake detection  
+• additional image forensic signals  
 • larger benchmark datasets  
-• simple web UI demo  
-• cloud deployment  
+• model comparison (Gemini / GPT / open models)  
+• containerized deployment  
+• hosted inference API  
+• evaluation dashboards
 
 ---
 
 # Author
 
-Martin Enke  
+Martin Enke
 
 AI engineering student focused on:
 
-• AI systems design  
+• AI systems architecture  
 • Python backend engineering  
 • applied AI infrastructure  
 • creative technology and audio tools  
