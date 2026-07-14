@@ -1,354 +1,228 @@
-
 # AI Media Authenticity Analyzer
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
-![Node.js](https://img.shields.io/badge/Node.js-Fastify-green)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688)
 ![Next.js](https://img.shields.io/badge/Next.js-Frontend-black)
 ![LangGraph](https://img.shields.io/badge/LangGraph-Orchestration-purple)
-![Gemini](https://img.shields.io/badge/Gemini-LLM-orange)
+![MCP](https://img.shields.io/badge/MCP-Tool%20Protocol-blueviolet)
+![Gemini](https://img.shields.io/badge/Gemini-Reasoning-orange)
 
-An AI engineering portfolio project that analyzes images for potential manipulation or AI generation using a modular analysis pipeline, structured reasoning, evaluation tooling, and CI‑ready infrastructure.
+## Explainable Media Authenticity Analysis with LangGraph & MCP
 
-The goal of this project is **not to build a perfect AI detector**, but to demonstrate how to design and implement a **production‑style AI system architecture** including orchestration, explainability, evaluation, and deployment infrastructure.
+An AI engineering portfolio project demonstrating how modular forensic
+analysis, LangGraph orchestration, MCP-based tools and LLM reasoning can
+be combined into an explainable media authenticity assessment pipeline.
 
-The system combines:
+Rather than attempting to build a perfect **AI image detector**, this
+project explores how multiple independent forensic signals can be
+orchestrated into a transparent and extensible analysis workflow. The
+emphasis is on **AI engineering, explainability, evaluation and system
+architecture** rather than claiming perfect detection accuracy.
 
-• tool‑based analysis pipelines  
-• LLM‑assisted reasoning  
-• structured prompt engineering  
-• evaluation tooling  
-• CI/CD configuration  
-• a modern web interface  
+------------------------------------------------------------------------
 
----
+# Why this project?
 
-# Project Overview
+Modern generative models can closely imitate real photographs, making
+deterministic AI detection increasingly unreliable.
 
-This system analyzes media (currently images) and produces a structured authenticity assessment including:
+Instead of relying on a single prediction model, this project aggregates
+multiple independent forensic signals into an explainable assessment.
+Every stage contributes structured evidence that is interpreted by the
+reasoning layer and presented transparently to the user.
 
-• AI-generation risk score 
-• risk level classification  
-• detected heuristic flags  
-• reasoning explanation  
-• confidence explanation  
-• recommended action  
+The project demonstrates production-oriented AI engineering concepts
+including:
 
-The architecture reflects how **real‑world AI systems aggregate multiple signals** rather than relying on a single model.
+-   LangGraph workflow orchestration
+-   Model Context Protocol (MCP)
+-   modular analysis tools
+-   structured reasoning
+-   prompt engineering
+-   evaluation pipelines
+-   modern frontend architecture
 
----
+------------------------------------------------------------------------
 
 # Architecture
 
-The system uses a modular pipeline orchestrated with **LangGraph**.
+``` text
+Image Upload
+      │
+      ▼
+Security Validation (MCP)
+      │
+      ▼
+Metadata Extraction (MCP)
+      │
+      ▼
+Structural Image Analysis (MCP)
+      │
+      ▼
+LangGraph Orchestration
+      │
+      ▼
+Rule-based + Gemini Reasoning
+      │
+      ▼
+Authenticity Assessment
+      │
+      ▼
+Explainable Next.js Frontend
+```
 
-User Upload / Claim  
-→ Next.js Frontend  
-→ Fastify API Gateway  
-→ Python AI Orchestrator  
-→ LangGraph Pipeline  
+Each component has a single responsibility, making the pipeline easy to
+extend with additional forensic modules.
 
-Pipeline tools:
+------------------------------------------------------------------------
 
-• Security Scan Tool  
-• Image Analysis Tool  
-• LLM Reasoning Engine  
+# Pipeline
 
-Output:
+1.  User uploads an image.
+2.  Independent MCP tools analyse different characteristics.
+3.  LangGraph orchestrates execution and aggregates structured results.
+4.  Rule-based scoring combines forensic evidence.
+5.  Gemini generates an explainable analyst summary.
+6.  Results are visualised with confidence levels, evidence cards and
+    pipeline trace.
 
-• Authenticity Score  
-• Risk Classification  
-• Recommended Action  
+------------------------------------------------------------------------
 
-Evaluation system:
+# MCP Tool Architecture
 
-• Results JSON  
-• Markdown Reports  
-• CI Pipeline Integration
+Every forensic capability is implemented as an independent MCP tool.
 
----
+Current tools include:
 
-# Pipeline Flow
+-   Security Scan
+-   Metadata Extraction
+-   Edge Density Analysis
+-   Image Structure Analysis
 
-Intake  
-→ Security Scan  
-→ Image Analysis  
-→ Prompt Builder  
-→ Reasoning Node  
-→ Scoring Engine  
-→ Output  
+This architecture allows new forensic detectors to be added without
+changing the orchestration workflow.
 
-Each stage contributes structured signals interpreted by the reasoning layer.
+------------------------------------------------------------------------
 
-This architecture mirrors **production AI workflows where models are only one component of a larger system**.
+# Explainable Analysis
 
----
+Instead of returning only a classification, the application explains
+*why* a conclusion was reached.
 
-# Core Features
+The interface presents:
 
-## Image Authenticity Heuristics
+-   Authenticity Risk Score
+-   Media Profile
+-   Confidence
+-   Analyst Summary
+-   Individual forensic evidence
+-   Score contribution of each signal
+-   Pipeline execution trace
 
-The analyzer extracts structural indicators such as:
+This makes the decision process transparent and easier to evaluate.
 
-• aspect ratio anomalies  
-• edge density analysis  
-• alpha channel detection  
-• EXIF metadata inspection  
-• file signature validation  
-• image dimension checks  
-
-These indicators feed a heuristic authenticity scoring system.
-
----
-
-## Structured Reasoning Layer
-
-Instead of returning raw technical signals, the system generates explainable outputs:
-
-• summary  
-• reasoning explanation  
-• confidence explanation  
-
-This simulates **explainable reasoning layers used in real‑world AI systems**.
-
----
-
-## Hybrid Reasoning System
-
-Two reasoning strategies are supported:
-
-Rule‑based reasoning  
-Deterministic explanation generated from heuristic findings.
-
-LLM reasoning  
-Google **Gemini** interprets the analysis signals and produces structured reasoning.
-
-The system can switch between reasoning modes for evaluation purposes.
-
----
-
-## Prompt Engineering + Versioning
-
-The project includes a structured prompt experimentation system:
-
-• prompt templates  
-• prompt builder utilities  
-• prompt preview in outputs  
-• multiple prompt versions (v1 / v2)
-
-This allows controlled experimentation with LLM reasoning behavior.
-
----
-
-## Tool‑Based Architecture
-
-The pipeline is intentionally modular.
-
-Tools currently include:
-
-• security scan tool  
-• metadata extraction  
-• edge density analysis  
-• image structure flag detection  
-
-New tools can be added without rewriting orchestration logic.
-
----
+------------------------------------------------------------------------
 
 # Evaluation Framework
 
-The repository includes a built‑in evaluation system for benchmarking reasoning strategies.
+The repository includes an evaluation framework for comparing reasoning
+strategies and prompt versions.
 
-Metrics include:
+Collected metrics include:
 
-• latency  
-• fallback usage  
-• expected flag thresholds  
-• reasoning length  
-• confidence explanation length  
-• risk classification correctness  
+-   latency
+-   prompt version
+-   reasoning mode
+-   detected signals
+-   confidence
+-   risk score
+-   evaluation reports
 
-Evaluation artifacts:
+The focus is on measuring pipeline behaviour rather than model accuracy
+alone.
 
-evaluation/results.json  
-evaluation/report.md  
-
----
-
-# Azure DevOps CI Integration
-
-The repository contains an **Azure DevOps pipeline configuration**.
-
-The pipeline is designed to:
-
-• install dependencies  
-• run evaluation scripts  
-• generate evaluation reports  
-• publish artifacts  
-
-Hosted pipeline execution currently requires Azure hosted parallelism approval for new/free accounts, but the CI configuration demonstrates how AI workflows integrate into CI/CD pipelines.
-
----
-
-# Web Interface
-
-The project includes a lightweight web UI built with **Next.js**.
-
-Users can:
-
-• upload images  
-• submit authenticity questions  
-• view reasoning explanations  
-• inspect analysis signals  
-
-This demonstrates how an AI analysis backend can be exposed through a modern web interface.
-
----
+------------------------------------------------------------------------
 
 # Technology Stack
 
-AI Orchestration  
-Python  
-LangGraph  
-Pydantic  
+### AI
 
-Image Processing  
-Pillow  
-NumPy  
+-   Python
+-   LangGraph
+-   Gemini
+-   Pydantic
 
-LLM Integration  
-Google Gemini API  
+### MCP Tools
 
-Backend API  
-Node.js  
-Fastify  
+-   Security validation
+-   Metadata extraction
+-   Image heuristics
 
-Frontend  
-Next.js  
+### Frontend
 
-Infrastructure  
-Azure DevOps Pipelines  
-GitHub  
+-   Next.js
+-   React
 
----
+### Backend
 
-# Example Output
+-   FastAPI
+-   Node.js API Gateway
 
-{
-  "risk_score": 0.55,
-  "risk_level": "medium",
-  "flags": [
-    "very_low_resolution",
-    "unusual_aspect_ratio",
-    "has_alpha_channel",
-    "very_low_edge_density"
-  ],
-  "summary": "The uploaded image contains indicators that warrant manual review.",
-  "recommended_action": "manual_check"
-}
+### Infrastructure
 
----
+-   Azure DevOps Pipelines
+-   GitHub
 
-# Repository Structure
+------------------------------------------------------------------------
 
-AI_Media_Authenticity_Analyzer
+# Project Structure
 
-frontend  
-Next.js web interface
+``` text
+frontend/
+api-gateway/
+ai-orchestrator/
+    analysis/
+    mcp/
+    langgraph/
+    evaluation/
+```
 
-api-gateway  
-Fastify API server
+------------------------------------------------------------------------
 
-ai-orchestrator  
-analysis tools  
-LangGraph pipeline  
-evaluation framework
+# Future Improvements
 
-azure-pipelines.yml  
-CI pipeline configuration
+Planned extensions include:
 
----
+-   additional forensic MCP tools (noise/frequency analysis)
+-   expanded benchmark datasets
+-   model comparison
+-   containerised deployment
+-   hosted inference API
+-   evaluation dashboards
 
-# Running the Project
+------------------------------------------------------------------------
 
-Clone the repository
+# Key Takeaways
 
-git clone https://github.com/<your-username>/AI_Media_Authenticity_Analyzer.git
+This project demonstrates:
 
-Create environment
+-   AI workflow orchestration
+-   MCP integration
+-   explainable AI
+-   modular system design
+-   structured reasoning
+-   evaluation-driven development
+-   production-oriented AI engineering
 
-cd ai-orchestrator
-python -m venv .venv
-source .venv/bin/activate
+The objective is not to claim perfect AI detection, but to build a
+realistic, transparent and extensible media authenticity analysis
+platform.
 
-Install dependencies
-
-pip install -r requirements-devops.txt
-
-Run analyzer
-
-python main.py
-
----
-
-# Quick Demo
-
-python main.py <<'EOF'
-{
-  "request_id":"demo-001",
-  "file_path":"/path/to/image.png",
-  "filename":"image.png",
-  "media_type":"image",
-  "mimetype":"image/png",
-  "claim":"Is this image AI-generated?",
-  "reasoning_mode":"llm",
-  "prompt_version":"v2"
-}
-EOF
-
----
-
-# Why This Project Is Valuable
-
-This repository demonstrates the ability to build:
-
-• orchestrated AI pipelines  
-• tool‑based AI architectures  
-• structured reasoning systems  
-• prompt experimentation infrastructure  
-• evaluation frameworks  
-• CI‑integrated AI workflows  
-
-The focus is on **AI engineering and system design**, not just model usage.
-
----
-
-# Future Extensions
-
-Planned improvements:
-
-• audio deepfake detection  
-• additional image forensic signals  
-• larger benchmark datasets  
-• model comparison (Gemini / GPT / open models)  
-• containerized deployment  
-• hosted inference API  
-• evaluation dashboards
-
----
+------------------------------------------------------------------------
 
 # Author
 
-Martin Enke
+**Martin Enke**
 
-AI engineering student focused on:
-
-• AI systems architecture  
-• Python backend engineering  
-• applied AI infrastructure  
-• creative technology and audio tools  
-
----
-
-# License
-
-MIT License
+Software Engineer focused on AI systems, backend engineering, LLM
+applications and creative technology.
