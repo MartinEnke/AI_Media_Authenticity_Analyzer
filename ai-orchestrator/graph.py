@@ -1,24 +1,25 @@
-from langgraph.graph import StateGraph, END
-from state import GraphState
-from analyzers.image_analyzer import analyze_image
+from langgraph.graph import END, StateGraph
+
 from analyzers.audio_analyzer import analyze_audio
-from tools.security_tools import security_scan_tool
-from utils.llm_reasoning import get_llm_reasoning
-from utils.reasoning_builder import build_reasoning
+from mcp_client import analyze_image_via_mcp, security_scan_via_mcp
+from state import GraphState
 from utils.llm_reasoning import get_llm_reasoning
 from utils.prompt_builder import build_reasoning_prompt
+from utils.reasoning_builder import build_reasoning
 
 
 def intake_node(state: GraphState) -> GraphState:
+    state.setdefault("flags", [])
+    state.setdefault("mcp_tool_trace", [])
     return state
 
 
 def security_node(state: GraphState) -> GraphState:
-    security_result = security_scan_tool(
-    file_path=state["file_path"],
-    declared_mimetype=state["mimetype"],
-    media_type=state["media_type"],
-)
+    security_result, tool_trace = security_scan_via_mcp(
+        file_path=state["file_path"],
+        declared_mimetype=state["mimetype"],
+        media_type=state["media_type"],
+    )
 
     state["security_result"] = security_result
 
@@ -26,21 +27,35 @@ def security_node(state: GraphState) -> GraphState:
     security_flags = security_result.get("flags", [])
     state["flags"] = existing_flags + security_flags
 
+    existing_trace = state.get("mcp_tool_trace", [])
+    state["mcp_tool_trace"] = existing_trace + tool_trace
+
     return state
 
 
 def image_analysis_node(state: GraphState) -> GraphState:
-    result = analyze_image(state["file_path"])
-    state["analysis_result"] = result
+    analysis_result, tool_trace = analyze_image_via_mcp(
+        file_path=state["file_path"]
+    )
+
+    state["analysis_result"] = analysis_result
 
     existing_flags = state.get("flags", [])
-    analysis_flags = result.get("flags", [])
+    analysis_flags = analysis_result.get("flags", [])
     state["flags"] = existing_flags + analysis_flags
+
+    existing_trace = state.get("mcp_tool_trace", [])
+    state["mcp_tool_trace"] = existing_trace + tool_trace
 
     return state
 
 
 def audio_analysis_node(state: GraphState) -> GraphState:
+    """
+    Audio analysis still uses the local analyzer.
+
+    It can be migrated to MCP once the audio tool interface is complete.
+    """
     result = analyze_audio(state["file_path"])
     state["analysis_result"] = result
 
@@ -73,18 +88,21 @@ def reasoning_node(state: GraphState) -> GraphState:
         )
     else:
         reasoning_result = get_llm_reasoning(
-    flags=state.get("flags", []),
-    analysis=state.get("analysis_result", {}),
-    security=state.get("security_result", {}),
-    claim=state.get("claim"),
-    prompt_version=state.get("prompt_version", "v1"),
-)
+            flags=state.get("flags", []),
+            analysis=state.get("analysis_result", {}),
+            security=state.get("security_result", {}),
+            claim=state.get("claim"),
+            prompt_version=state.get("prompt_version", "v1"),
+        )
 
     state["reasoning"] = reasoning_result.get("reasoning", "")
-    state["confidence_explanation"] = reasoning_result.get("confidence_explanation", "")
+    state["confidence_explanation"] = reasoning_result.get(
+        "confidence_explanation",
+        "",
+    )
     state["summary"] = reasoning_result.get(
         "summary",
-        "The uploaded image contains indicators that warrant manual review."
+        "The uploaded image contains indicators that warrant manual review.",
     )
 
     return state
@@ -94,6 +112,7 @@ def scoring_node(state: GraphState) -> GraphState:
     base_score = state.get("analysis_result", {}).get("base_score", 0.2)
 
     security_flags = state.get("security_result", {}).get("flags", [])
+
     if security_flags:
         base_score += 0.2
 
@@ -112,7 +131,7 @@ def scoring_node(state: GraphState) -> GraphState:
         risk_level = "low"
         action = "allow_with_logging"
 
-    state["authenticity_score"] = round(base_score, 2)
+    state["risk_score"] = round(base_score, 2)
     state["risk_level"] = risk_level
     state["recommended_action"] = action
 
@@ -120,7 +139,12 @@ def scoring_node(state: GraphState) -> GraphState:
 
 
 def router(state: GraphState) -> str:
-    return state["media_type"]
+    media_type = state.get("media_type")
+
+    if media_type not in {"image", "audio"}:
+        raise ValueError(f"Unsupported media type: {media_type}")
+
+    return media_type
 
 
 def build_graph():
@@ -134,6 +158,7 @@ def build_graph():
     graph.add_node("scoring", scoring_node)
 
     graph.set_entry_point("intake")
+
     graph.add_edge("intake", "security")
 
     graph.add_conditional_edges(
@@ -142,7 +167,7 @@ def build_graph():
         {
             "image": "image_analysis",
             "audio": "audio_analysis",
-        }
+        },
     )
 
     graph.add_edge("image_analysis", "reasoning")

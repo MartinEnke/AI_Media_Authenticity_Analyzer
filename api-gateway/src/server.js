@@ -27,3 +27,6 @@ async function startServer() {
 }
 
 startServer();
+
+
+// npm run dev

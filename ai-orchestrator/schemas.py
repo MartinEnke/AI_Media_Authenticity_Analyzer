@@ -1,5 +1,6 @@
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
 
 
 class AnalysisRequest(BaseModel):
@@ -14,7 +15,7 @@ class AnalysisRequest(BaseModel):
 class AnalysisResponse(BaseModel):
     request_id: str
     media_type: str
-    authenticity_score: float
+    risk_score: float
     risk_level: str
     flags: List[str]
     summary: str

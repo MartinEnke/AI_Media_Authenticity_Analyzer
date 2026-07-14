@@ -1,4 +1,4 @@
-from typing import TypedDict, Dict, Any, List
+from typing import Any, Dict, List, TypedDict
 
 
 class GraphState(TypedDict, total=False):
@@ -8,19 +8,22 @@ class GraphState(TypedDict, total=False):
     media_type: str
     mimetype: str
     claim: str
-    prompt_preview: dict
+
     prompt_version: str
+    reasoning_mode: str
 
     security_result: Dict[str, Any]
     analysis_result: Dict[str, Any]
 
     flags: List[str]
-    reasoning_mode: str
+    mcp_tool_trace: List[Dict[str, Any]]
+
     reasoning: str
     confidence_explanation: str
-    authenticity_score: float
+    summary: str
+
+    risk_score: float
     risk_level: str
     recommended_action: str
-    summary: str
+
     prompt_preview: Dict[str, Any]
-    

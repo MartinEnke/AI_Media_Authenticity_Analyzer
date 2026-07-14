@@ -26,7 +26,7 @@ The system combines:
 
 This system analyzes media (currently images) and produces a structured authenticity assessment including:
 
-• authenticity score  
+• AI-generation risk score 
 • risk level classification  
 • detected heuristic flags  
 • reasoning explanation  
@@ -234,7 +234,7 @@ GitHub
 # Example Output
 
 {
-  "authenticity_score": 0.55,
+  "risk_score": 0.55,
   "risk_level": "medium",
   "flags": [
     "very_low_resolution",

@@ -1,0 +1,5 @@
+run backend from cd api-gateway 
+-> npm run dev 
+
+run frontend from cd frontend
+-> npm run dev -- -p 3001

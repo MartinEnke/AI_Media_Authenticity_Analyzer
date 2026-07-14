@@ -1,3 +1,4 @@
+import argparse
 import json
 import sys
 import time
@@ -8,17 +9,16 @@ sys.path.append(str(BASE_DIR))
 
 from graph import build_graph
 
-import argparse
-
 
 DEFAULT_CASES_PATH = BASE_DIR / "evaluation" / "cases" / "image_cases.json"
 RESULTS_PATH = BASE_DIR / "evaluation" / "results.json"
 
 
 def load_cases(cases_path):
-    with open(cases_path, "r", encoding="utf-8") as f:
-        return json.load(f)
-    
+    with open(cases_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
 def resolve_case_path(path_str: str) -> str:
     return str((BASE_DIR / path_str).resolve())
 
@@ -26,17 +26,20 @@ def resolve_case_path(path_str: str) -> str:
 def run_case(app, case, reasoning_mode):
     start = time.perf_counter()
 
-    result = app.invoke({
-    "request_id": case["id"],
-    "file_path": resolve_case_path(case["file_path"]),
-    "filename": case["filename"],
-    "media_type": case["media_type"],
-    "mimetype": case["mimetype"],
-    "claim": case.get("claim"),
-    "flags": [],
-    "reasoning_mode": reasoning_mode,
-    "prompt_version": case.get("prompt_version", "v1"),
-})
+    result = app.invoke(
+        {
+            "request_id": case["id"],
+            "file_path": resolve_case_path(case["file_path"]),
+            "filename": case["filename"],
+            "media_type": case["media_type"],
+            "mimetype": case["mimetype"],
+            "claim": case.get("claim"),
+            "flags": [],
+            "mcp_tool_trace": [],
+            "reasoning_mode": reasoning_mode,
+            "prompt_version": case.get("prompt_version", "v1"),
+        }
+    )
 
     latency_ms = round((time.perf_counter() - start) * 1000, 2)
 
@@ -51,7 +54,7 @@ def run_case(app, case, reasoning_mode):
     predicted_risk = result.get("risk_level")
     risk_correct = expected_risk == predicted_risk
 
-    output = {
+    return {
         "case_id": case["id"],
         "reasoning_mode": reasoning_mode,
         "latency_ms": latency_ms,
@@ -66,7 +69,7 @@ def run_case(app, case, reasoning_mode):
         "confidence_length": len(confidence_text),
         "recommended_action": result.get("recommended_action"),
         "risk_level": result.get("risk_level"),
-        "authenticity_score": result.get("authenticity_score"),
+        "risk_score": result.get("risk_score"),
         "flags": flags,
         "summary": result.get("summary", ""),
         "reasoning": reasoning_text,
@@ -78,15 +81,13 @@ def run_case(app, case, reasoning_mode):
         "prompt_version": case.get("prompt_version", "v1"),
     }
 
-    return output
-
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--cases",
         default=str(DEFAULT_CASES_PATH),
-        help="Path to the evaluation cases JSON file"
+        help="Path to the evaluation cases JSON file",
     )
     args = parser.parse_args()
 
@@ -101,16 +102,18 @@ def main():
                 result = run_case(app, case, mode)
                 all_results.append(result)
                 print(f"Finished {case['id']} with mode={mode}")
-            except Exception as e:
-                all_results.append({
-                    "case_id": case["id"],
-                    "reasoning_mode": mode,
-                    "error": str(e),
-                })
-                print(f"Failed {case['id']} with mode={mode}: {e}")
+            except Exception as error:
+                all_results.append(
+                    {
+                        "case_id": case["id"],
+                        "reasoning_mode": mode,
+                        "error": str(error),
+                    }
+                )
+                print(f"Failed {case['id']} with mode={mode}: {error}")
 
-    with open(RESULTS_PATH, "w", encoding="utf-8") as f:
-        json.dump(all_results, f, indent=2)
+    with open(RESULTS_PATH, "w", encoding="utf-8") as file:
+        json.dump(all_results, file, indent=2)
 
     print(f"\nSaved results to: {RESULTS_PATH}")
 

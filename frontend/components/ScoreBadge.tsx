@@ -6,8 +6,15 @@ type ScoreBadgeProps = {
 export default function ScoreBadge({ score, risk }: ScoreBadgeProps) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-      <p className="text-sm text-zinc-400">Authenticity Score</p>
-      <p className="mt-2 text-3xl font-semibold text-white">{score.toFixed(2)}</p>
+      <p className="text-sm text-zinc-400">AI-Generation Risk Score</p>
+
+      <p className="mt-2 text-3xl font-semibold text-white">
+        {score.toFixed(2)}
+      </p>
+
+      <p className="mt-1 text-xs text-zinc-500">
+        Higher values indicate stronger heuristic suspicion.
+      </p>
 
       <div className="mt-3 inline-flex rounded-full border border-white/10 bg-black/20 px-3 py-1 text-sm text-zinc-200">
         Risk: {risk}
