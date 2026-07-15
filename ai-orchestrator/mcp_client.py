@@ -72,6 +72,9 @@ async def _call_tool(
     tool_name: str,
     arguments: Dict[str, Any],
 ) -> Dict[str, Any]:
+    """
+    Call a registered MCP tool and normalize its response.
+    """
     result = await session.call_tool(tool_name, arguments)
 
     is_error = getattr(result, "isError", False) or getattr(
@@ -158,12 +161,27 @@ async def analyze_image_via_mcp_async(
 
         edge_density = float(edge_result.get("edge_density", 0.0))
 
+        noise_result = await _call_tool(
+            session=session,
+            tool_name="detect_noise_consistency",
+            arguments={"file_path": file_path},
+        )
+
+        trace.append(
+            {
+                "tool": "detect_noise_consistency",
+                "transport": "mcp_stdio",
+                "status": "completed",
+            }
+        )
+
         structure_result = await _call_tool(
             session=session,
             tool_name="detect_image_structure_flags",
             arguments={
                 "metadata": metadata,
                 "edge_density": edge_density,
+                "noise_analysis": noise_result,
             },
         )
 
@@ -179,6 +197,7 @@ async def analyze_image_via_mcp_async(
         **metadata,
         **structure_result,
         "edge_density": edge_density,
+        "noise_analysis": noise_result,
     }
 
     return analysis_result, trace
@@ -208,3 +227,4 @@ def analyze_image_via_mcp(
     Synchronous entry point for image analysis.
     """
     return asyncio.run(analyze_image_via_mcp_async(file_path))
+

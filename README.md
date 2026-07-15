@@ -1,4 +1,22 @@
-# AI Media Authenticity Analyzer
+# AI Media Authenticity Analysis Pipeline
+
+**Analyze images for heuristic authenticity signals, structured
+reasoning, and explainable risk classification.**
+
+<table>
+<tr>
+<td width="50%">
+
+![Analysis Overview](./images/ai_maap1.png)
+
+</td>
+<td width="50%">
+
+![Analysis Results](./images/ai_maap2.png)
+
+</td>
+</tr>
+</table>
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688)
@@ -7,44 +25,50 @@
 ![MCP](https://img.shields.io/badge/MCP-Tool%20Protocol-blueviolet)
 ![Gemini](https://img.shields.io/badge/Gemini-Reasoning-orange)
 
-## Explainable Media Authenticity Analysis with LangGraph & MCP
+------------------------------------------------------------------------
 
-An AI engineering portfolio project demonstrating how modular forensic
-analysis, LangGraph orchestration, MCP-based tools and LLM reasoning can
-be combined into an explainable media authenticity assessment pipeline.
+## Overview
 
-Rather than attempting to build a perfect **AI image detector**, this
-project explores how multiple independent forensic signals can be
-orchestrated into a transparent and extensible analysis workflow. The
-emphasis is on **AI engineering, explainability, evaluation and system
-architecture** rather than claiming perfect detection accuracy.
+This project demonstrates a **modular, explainable media authenticity
+analysis pipeline** built around **LangGraph**, the **Model Context
+Protocol (MCP)** and LLM-based reasoning.
+
+Rather than attempting to build a definitive AI-image detector, the
+system combines multiple independent forensic heuristics into a
+transparent assessment pipeline. Every stage produces structured
+evidence that is orchestrated, interpreted and presented with clear
+explanations.
+
+The emphasis is on **AI engineering**, **workflow orchestration**,
+**explainability**, **evaluation**, and **extensible system
+architecture**.
 
 ------------------------------------------------------------------------
 
-# Why this project?
+## Why this project?
 
-Modern generative models can closely imitate real photographs, making
-deterministic AI detection increasingly unreliable.
+Modern generative models increasingly resemble authentic photographs,
+making lightweight heuristic detection unreliable when used in
+isolation.
 
-Instead of relying on a single prediction model, this project aggregates
-multiple independent forensic signals into an explainable assessment.
-Every stage contributes structured evidence that is interpreted by the
-reasoning layer and presented transparently to the user.
+Instead of making strong origin claims, this project demonstrates how
+independent forensic tools can be orchestrated into an explainable
+evidence pipeline.
 
-The project demonstrates production-oriented AI engineering concepts
-including:
+### Highlights
 
 -   LangGraph workflow orchestration
 -   Model Context Protocol (MCP)
--   modular analysis tools
--   structured reasoning
--   prompt engineering
--   evaluation pipelines
--   modern frontend architecture
+-   Modular forensic tools
+-   Explainable AI
+-   Structured reasoning
+-   Prompt engineering
+-   Evaluation framework
+-   Next.js + FastAPI architecture
 
 ------------------------------------------------------------------------
 
-# Architecture
+## Architecture
 
 ``` text
 Image Upload
@@ -56,171 +80,139 @@ Security Validation (MCP)
 Metadata Extraction (MCP)
       │
       ▼
-Structural Image Analysis (MCP)
+Edge Density Analysis (MCP)
+      │
+      ▼
+Residual Noise Analysis (MCP)
+      │
+      ▼
+Image Structure Analysis (MCP)
       │
       ▼
 LangGraph Orchestration
       │
       ▼
-Rule-based + Gemini Reasoning
+Rule-Based + Gemini Reasoning
       │
       ▼
-Authenticity Assessment
+Explainable Risk Assessment
       │
       ▼
-Explainable Next.js Frontend
+Next.js Frontend
 ```
 
-Each component has a single responsibility, making the pipeline easy to
-extend with additional forensic modules.
+Each analysis stage is implemented as an independent MCP tool, making
+the pipeline straightforward to extend.
 
 ------------------------------------------------------------------------
 
-# Pipeline
-
-1.  User uploads an image.
-2.  Independent MCP tools analyse different characteristics.
-3.  LangGraph orchestrates execution and aggregates structured results.
-4.  Rule-based scoring combines forensic evidence.
-5.  Gemini generates an explainable analyst summary.
-6.  Results are visualised with confidence levels, evidence cards and
-    pipeline trace.
-
-------------------------------------------------------------------------
-
-# MCP Tool Architecture
-
-Every forensic capability is implemented as an independent MCP tool.
-
-Current tools include:
-
--   Security Scan
--   Metadata Extraction
--   Edge Density Analysis
--   Image Structure Analysis
-
-This architecture allows new forensic detectors to be added without
-changing the orchestration workflow.
-
-------------------------------------------------------------------------
-
-# Explainable Analysis
-
-Instead of returning only a classification, the application explains
-*why* a conclusion was reached.
+## Explainable Output
 
 The interface presents:
 
--   Authenticity Risk Score
--   Media Profile
--   Confidence
+-   AI Generation Risk Score
+-   Detected Media Profile
+-   Profile Confidence
 -   Analyst Summary
--   Individual forensic evidence
--   Score contribution of each signal
--   Pipeline execution trace
-
-This makes the decision process transparent and easier to evaluate.
+-   Individual Evidence Signals
+-   Score Contribution
+-   Pipeline Execution Trace
 
 ------------------------------------------------------------------------
 
-# Evaluation Framework
+## Evaluation
 
 The repository includes an evaluation framework for comparing reasoning
 strategies and prompt versions.
 
-Collected metrics include:
+It captures:
 
 -   latency
 -   prompt version
 -   reasoning mode
--   detected signals
+-   extracted signals
 -   confidence
 -   risk score
--   evaluation reports
+-   generated reasoning
 
-The focus is on measuring pipeline behaviour rather than model accuracy
-alone.
+The framework is intended to evaluate pipeline behaviour rather than
+benchmark AI-detection accuracy.
 
 ------------------------------------------------------------------------
 
-# Technology Stack
+## Technology Stack
 
-### AI
+**AI**
 
 -   Python
 -   LangGraph
 -   Gemini
 -   Pydantic
 
-### MCP Tools
+**MCP**
 
--   Security validation
--   Metadata extraction
--   Image heuristics
+-   Security Scan
+-   Metadata Extraction
+-   Edge Density Analysis
+-   Residual Noise Analysis
+-   Image Structure Analysis
 
-### Frontend
+**Frontend**
 
 -   Next.js
 -   React
+-   TypeScript
 
-### Backend
+**Backend**
 
 -   FastAPI
 -   Node.js API Gateway
 
-### Infrastructure
+**DevOps**
 
 -   Azure DevOps Pipelines
 -   GitHub
 
 ------------------------------------------------------------------------
 
-# Project Structure
+## Limitations
 
-``` text
-frontend/
-api-gateway/
-ai-orchestrator/
-    analysis/
-    mcp/
-    langgraph/
-    evaluation/
-```
+This project intentionally does **not** claim reliable attribution of
+modern AI-generated images.
+
+Instead, it demonstrates a realistic engineering architecture for
+collecting, orchestrating and explaining forensic evidence. Additional
+forensic detectors or learned models can be integrated into the existing
+MCP pipeline without changing the orchestration workflow.
 
 ------------------------------------------------------------------------
 
-# Future Improvements
+## Future Improvements
 
-Planned extensions include:
-
--   additional forensic MCP tools (noise/frequency analysis)
--   expanded benchmark datasets
--   model comparison
--   containerised deployment
--   hosted inference API
--   evaluation dashboards
+-   Additional forensic MCP tools
+-   Larger benchmark datasets
+-   Containerized deployment
+-   Hosted inference API
+-   Evaluation dashboards
 
 ------------------------------------------------------------------------
 
-# Key Takeaways
+## Key Takeaways
 
-This project demonstrates:
-
--   AI workflow orchestration
+-   LangGraph orchestration
 -   MCP integration
--   explainable AI
--   modular system design
--   structured reasoning
--   evaluation-driven development
--   production-oriented AI engineering
+-   Explainable AI
+-   Modular system design
+-   Structured reasoning
+-   Evaluation-driven development
+-   Production-oriented AI engineering
 
 The objective is not to claim perfect AI detection, but to build a
-realistic, transparent and extensible media authenticity analysis
-platform.
+transparent, extensible media authenticity analysis platform.
 
 ------------------------------------------------------------------------
 
-# Author
+## Author
 
 **Martin Enke**
 

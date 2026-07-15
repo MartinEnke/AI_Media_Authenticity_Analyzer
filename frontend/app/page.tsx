@@ -33,6 +33,25 @@ function getSignalStatusStyles(signal: AnalysisSignal): string {
 
 
 function SignalCard({ signal }: { signal: AnalysisSignal }) {
+  const isNoiseConsistency = signal.id === "noise_consistency";
+
+  const noiseValue =
+    isNoiseConsistency &&
+    signal.value &&
+    typeof signal.value === "object"
+      ? (signal.value as {
+          uniformity_score?: number;
+          residual_mean?: number;
+          confidence?: number;
+          regions_analyzed?: number;
+          classification?: string;
+        })
+      : null;
+
+  const primaryDisplayValue = isNoiseConsistency
+    ? signal.status
+    : signal.display_value;
+
   return (
     <article className="rounded-xl border border-white/10 bg-black/20 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -40,18 +59,58 @@ function SignalCard({ signal }: { signal: AnalysisSignal }) {
           <h3 className="font-medium text-white">{signal.label}</h3>
 
           <p className="mt-1 text-2xl font-semibold tracking-tight text-white">
-            {signal.display_value}
+            {primaryDisplayValue}
           </p>
         </div>
 
-        <span
-          className={`rounded-full border px-3 py-1 text-xs font-medium ${getSignalStatusStyles(
-            signal,
-          )}`}
-        >
-          {signal.status}
-        </span>
+        {!isNoiseConsistency && (
+          <span
+            className={`rounded-full border px-3 py-1 text-xs font-medium ${getSignalStatusStyles(
+              signal,
+            )}`}
+          >
+            {signal.status}
+          </span>
+        )}
       </div>
+
+      {isNoiseConsistency && noiseValue && (
+        <dl className="mt-4 grid gap-2 text-xs sm:grid-cols-2">
+          <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+            <dt className="text-zinc-500">Uniformity score</dt>
+            <dd className="mt-1 font-medium text-zinc-200">
+              {typeof noiseValue.uniformity_score === "number"
+                ? noiseValue.uniformity_score.toFixed(3)
+                : "Unavailable"}
+            </dd>
+          </div>
+
+          <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+            <dt className="text-zinc-500">Detector confidence</dt>
+            <dd className="mt-1 font-medium text-zinc-200">
+              {typeof noiseValue.confidence === "number"
+                ? `${Math.round(noiseValue.confidence * 100)}%`
+                : "Unavailable"}
+            </dd>
+          </div>
+
+          <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+            <dt className="text-zinc-500">Residual mean</dt>
+            <dd className="mt-1 font-medium text-zinc-200">
+              {typeof noiseValue.residual_mean === "number"
+                ? noiseValue.residual_mean.toFixed(3)
+                : "Unavailable"}
+            </dd>
+          </div>
+
+          <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+            <dt className="text-zinc-500">Regions analyzed</dt>
+            <dd className="mt-1 font-medium text-zinc-200">
+              {noiseValue.regions_analyzed ?? "Unavailable"}
+            </dd>
+          </div>
+        </dl>
+      )}
 
       <dl className="mt-4 space-y-2 text-xs">
         <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
@@ -97,7 +156,7 @@ export default function HomePage() {
           </p>
 
           <h1 className="mt-3 text-4xl font-bold tracking-tight">
-            AI Media Authenticity Analyzer
+            AI Media Authenticity Analysis Pipeline
           </h1>
 
           <p className="mt-4 max-w-2xl text-zinc-400">
@@ -112,8 +171,74 @@ export default function HomePage() {
         </header>
 
         <div className="grid items-start gap-6 lg:grid-cols-[0.9fr_1.3fr]">
-          <div className="lg:sticky lg:top-6">
+          <div className="space-y-6">
             <UploadForm onResult={setResult} />
+
+            {result ? (
+              <>
+                {signals.length > 0 ? (
+                  <ResultCard title="Analyzed Signals">
+                    <div className="space-y-4">
+                      {signals.map((signal) => (
+                        <SignalCard key={signal.id} signal={signal} />
+                      ))}
+                    </div>
+                  </ResultCard>
+                ) : null}
+
+                <ResultCard title="Detected Flags">
+                  {result.flags.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {result.flags.map((flag) => (
+                        <span
+                          key={flag}
+                          className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs text-amber-200"
+                        >
+                          {flag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>No heuristic flags were detected.</p>
+                  )}
+                </ResultCard>
+
+                {result.technical_details?.mcp_tool_trace?.length ? (
+                  <ResultCard title="Analysis Pipeline">
+                    <ol className="space-y-3">
+                      {result.technical_details.mcp_tool_trace.map(
+                        (entry, index) => (
+                          <li
+                            key={`${entry.tool}-${index}`}
+                            className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-black/20 px-4 py-3"
+                          >
+                            <div className="flex min-w-0 items-center gap-3">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs text-zinc-300">
+                                {index + 1}
+                              </span>
+
+                              <div className="min-w-0">
+                                <p className="truncate font-medium text-zinc-200">
+                                  {entry.tool}
+                                </p>
+
+                                <p className="text-xs text-zinc-500">
+                                  {entry.transport}
+                                </p>
+                              </div>
+                            </div>
+
+                            <span className="shrink-0 text-xs font-medium text-emerald-300">
+                              {entry.status}
+                            </span>
+                          </li>
+                        ),
+                      )}
+                    </ol>
+                  </ResultCard>
+                ) : null}
+              </>
+            ) : null}
           </div>
 
           <div className="space-y-6">
@@ -175,33 +300,6 @@ export default function HomePage() {
                   <p>{result.summary}</p>
                 </ResultCard>
 
-                {signals.length > 0 ? (
-                  <ResultCard title="Analyzed Signals">
-                    <div className="grid gap-4 xl:grid-cols-2">
-                      {signals.map((signal) => (
-                        <SignalCard key={signal.id} signal={signal} />
-                      ))}
-                    </div>
-                  </ResultCard>
-                ) : null}
-
-                <ResultCard title="Detected Flags">
-                  {result.flags.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {result.flags.map((flag) => (
-                        <span
-                          key={flag}
-                          className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs text-amber-200"
-                        >
-                          {flag}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p>No heuristic flags were detected.</p>
-                  )}
-                </ResultCard>
-
                 <ResultCard title="Reasoning">
                   <p>{result.reasoning}</p>
                 </ResultCard>
@@ -213,41 +311,6 @@ export default function HomePage() {
                 <ResultCard title="Recommended Action">
                   <p>{formatAction(result.recommended_action)}</p>
                 </ResultCard>
-
-                {result.technical_details?.mcp_tool_trace?.length ? (
-                  <ResultCard title="Analysis Pipeline">
-                    <ol className="space-y-3">
-                      {result.technical_details.mcp_tool_trace.map(
-                        (entry, index) => (
-                          <li
-                            key={`${entry.tool}-${index}`}
-                            className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-black/20 px-4 py-3"
-                          >
-                            <div className="flex items-center gap-3">
-                              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-xs text-zinc-300">
-                                {index + 1}
-                              </span>
-
-                              <div>
-                                <p className="font-medium text-zinc-200">
-                                  {entry.tool}
-                                </p>
-
-                                <p className="text-xs text-zinc-500">
-                                  {entry.transport}
-                                </p>
-                              </div>
-                            </div>
-
-                            <span className="text-xs font-medium text-emerald-300">
-                              {entry.status}
-                            </span>
-                          </li>
-                        ),
-                      )}
-                    </ol>
-                  </ResultCard>
-                ) : null}
               </>
             ) : (
               <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.03] p-8 text-zinc-500">

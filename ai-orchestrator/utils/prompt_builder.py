@@ -2,8 +2,8 @@ import json
 from utils.prompt_templates import PROMPT_TEMPLATES
 
 
-def build_reasoning_prompt(claim, security, analysis, flags, prompt_version="v1"):
-    template = PROMPT_TEMPLATES.get(prompt_version, PROMPT_TEMPLATES["v1"])
+def build_reasoning_prompt(claim, security, analysis, flags, prompt_version="v2"):
+    template = PROMPT_TEMPLATES.get(prompt_version, PROMPT_TEMPLATES["v2"])
     claim_text = claim if claim else "No explicit user claim provided."
 
     user_prompt = template["user"].format(

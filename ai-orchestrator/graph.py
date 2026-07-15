@@ -74,7 +74,7 @@ def reasoning_node(state: GraphState) -> GraphState:
         security=state.get("security_result", {}),
         analysis=state.get("analysis_result", {}),
         flags=state.get("flags", []),
-        prompt_version=state.get("prompt_version", "v1"),
+        prompt_version=state.get("prompt_version", "v2"),
     )
 
     state["prompt_preview"] = prompt_preview

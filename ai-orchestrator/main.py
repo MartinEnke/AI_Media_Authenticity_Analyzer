@@ -24,7 +24,7 @@ def main() -> None:
             "flags": [],
             "mcp_tool_trace": [],
             "reasoning_mode": data.get("reasoning_mode", "llm"),
-            "prompt_version": data.get("prompt_version", "v1"),
+            "prompt_version": data.get("prompt_version", "v2"),
         }
     )
 

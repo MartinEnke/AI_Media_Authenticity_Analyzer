@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict, List
 
 import numpy as np
-from PIL import ExifTags, Image
+from PIL import ExifTags, Image, ImageFilter
 
 
 EDGE_DENSITY_THRESHOLD = 0.03
@@ -68,6 +68,98 @@ def compute_edge_density_tool(file_path: str) -> Dict[str, Any]:
         "edge_density": round(edge_density, 4),
     }
 
+def detect_noise_consistency_tool(file_path: str) -> Dict[str, Any]:
+    """
+    Analyse the strength and spatial consistency of residual image noise.
+
+    The image is converted to grayscale, lightly blurred, and compared with
+    the original. Residual strength is measured globally and across a grid
+    of local regions.
+
+    This is a lightweight forensic heuristic, not an AI-image detector.
+    """
+
+    with Image.open(file_path) as img:
+        grayscale = img.convert("L")
+        blurred_image = grayscale.filter(
+            ImageFilter.GaussianBlur(radius=1)
+        )
+
+        original = np.asarray(grayscale, dtype=np.float32)
+        blurred = np.asarray(blurred_image, dtype=np.float32)
+
+    residual = np.abs(original - blurred)
+
+    residual_mean = float(np.mean(residual))
+    residual_std = float(np.std(residual))
+
+    height, width = residual.shape
+    grid_size = 4
+    regional_means: List[float] = []
+
+    for row in range(grid_size):
+        y_start = row * height // grid_size
+        y_end = (row + 1) * height // grid_size
+
+        for column in range(grid_size):
+            x_start = column * width // grid_size
+            x_end = (column + 1) * width // grid_size
+
+            region = residual[y_start:y_end, x_start:x_end]
+
+            if region.size:
+                regional_means.append(float(np.mean(region)))
+
+    regional_variation = (
+        float(np.std(regional_means))
+        if regional_means
+        else 0.0
+    )
+
+    variation_ratio = (
+        regional_variation / residual_mean
+        if residual_mean > 0
+        else 0.0
+    )
+
+    # Higher values mean that residual strength is more similar between
+    # different image regions.
+    uniformity_score = max(0.0, min(1.0, 1.0 - variation_ratio))
+
+    if residual_mean < 1.5 and uniformity_score >= 0.75:
+        classification = "very_uniform"
+        confidence = min(
+            0.95,
+            0.60 + ((1.5 - residual_mean) / 1.5) * 0.20
+            + (uniformity_score - 0.75) * 0.60,
+        )
+    elif residual_mean < 4.0 and uniformity_score >= 0.55:
+        classification = "slightly_uniform"
+        confidence = min(
+            0.85,
+            0.55 + abs(uniformity_score - 0.55) * 0.50,
+        )
+    else:
+        classification = "varied"
+        confidence = min(
+            0.90,
+            0.55 + min(residual_mean / 20.0, 0.20)
+            + min(variation_ratio, 0.15),
+        )
+
+    return {
+        "residual_mean": round(residual_mean, 3),
+        "residual_std": round(residual_std, 3),
+        "regional_variation": round(regional_variation, 3),
+        "uniformity_score": round(uniformity_score, 3),
+        "classification": classification,
+        "confidence": round(confidence, 2),
+        "regions_analyzed": len(regional_means),
+        "disclaimer": (
+            "Residual-noise consistency is a heuristic image characteristic. "
+            "It is not proof that an image is authentic or AI-generated."
+        ),
+    }
 
 def _build_signal(
     *,
@@ -104,44 +196,69 @@ def infer_media_profile(
     aspect_ratio: float,
 ) -> Dict[str, Any]:
     """
-    Estimate the broad visual/media profile using transparent heuristics.
+    Estimate a broad media profile using cautious, transparent heuristics.
 
-    This is not a trained image classifier. It only provides context for
-    interpreting structural signals such as edge density and alpha channels.
+    The result provides context for interpreting other forensic signals.
+    It is not a trained image classifier and should not be treated as a
+    definitive judgment about whether an image is photographic, graphical,
+    authentic, or AI-generated.
     """
     image_format = str(metadata.get("format", "")).upper()
     image_mode = str(metadata.get("mode", ""))
     exif_present = bool(metadata.get("exif_present", False))
+    exif = metadata.get("exif", {}) or {}
+
     has_alpha_channel = "A" in image_mode
+    is_palette_mode = image_mode == "P"
 
     graphical_score = 0
     photographic_score = 0
 
-    graphical_reasons = []
-    photographic_reasons = []
+    graphical_reasons: List[str] = []
+    photographic_reasons: List[str] = []
+    contextual_reasons: List[str] = []
 
+    strong_graphical_evidence = False
+    strong_photographic_evidence = False
+
+    # File format is contextual only. PNG can contain graphics,
+    # screenshots, exported photographs, or generated photographic images.
     if image_format == "PNG":
-        graphical_score += 1
-        graphical_reasons.append(
-            "PNG is commonly used for screenshots, illustrations, and graphical assets"
+        contextual_reasons.append(
+            "PNG is used for both graphical assets and exported photographic images"
         )
-
-    if image_format in {"JPEG", "JPG"}:
+    elif image_format in {"JPEG", "JPG"}:
         photographic_score += 1
         photographic_reasons.append(
             "JPEG is commonly used for photographic images"
         )
 
+    # Transparency is a stronger graphical indicator than format alone.
     if has_alpha_channel:
         graphical_score += 2
+        strong_graphical_evidence = True
         graphical_reasons.append(
             "The image contains an alpha channel used for transparency"
         )
 
-    if edge_density < 0.03:
+    # Palette mode is commonly associated with indexed graphics.
+    if is_palette_mode:
         graphical_score += 2
+        strong_graphical_evidence = True
         graphical_reasons.append(
-            "The image has very low edge density"
+            "The image uses an indexed colour palette commonly found in graphical assets"
+        )
+
+    # Edge density is interpreted gradually rather than as a hard binary rule.
+    if edge_density < 0.015:
+        graphical_score += 2
+        strong_graphical_evidence = True
+        graphical_reasons.append(
+            "The image has extremely low structural edge density"
+        )
+    elif edge_density < 0.03:
+        contextual_reasons.append(
+            "The image has moderately low edge density, which can occur in smooth photographs, illustrations, or processed images"
         )
     elif edge_density >= 0.08:
         photographic_score += 1
@@ -149,76 +266,83 @@ def infer_media_profile(
             "The image contains comparatively high structural detail"
         )
 
+    # Aspect ratio is recorded as context but does not determine the profile.
     if 0.8 <= aspect_ratio <= 1.25:
-        graphical_score += 1
-        graphical_reasons.append(
-            "The image uses a near-square aspect ratio"
+        contextual_reasons.append(
+            "The image uses a near-square aspect ratio, which is common in both photographs and graphics"
         )
 
-    if exif_present:
-        exif = metadata.get("exif", {})
+    camera_fields = {
+        "Make",
+        "Model",
+        "DateTimeOriginal",
+        "LensModel",
+        "ExposureTime",
+        "FNumber",
+        "ISOSpeedRatings",
+        "PhotographicSensitivity",
+    }
 
-        camera_fields = {
-            "Make",
-            "Model",
-            "DateTimeOriginal",
-            "LensModel",
-            "ExposureTime",
-            "FNumber",
-            "ISOSpeedRatings",
-            "PhotographicSensitivity",
-        }
+    detected_camera_fields = [
+        field for field in camera_fields
+        if field in exif and exif.get(field)
+    ]
 
-        detected_camera_fields = [
-            field for field in camera_fields if field in exif
-        ]
-
-        if detected_camera_fields:
-            photographic_score += 3
-            photographic_reasons.append(
-                "Camera-related EXIF fields were detected"
-            )
-        else:
-            graphical_score += 1
-            graphical_reasons.append(
-                "Metadata is present but contains no clear camera-capture fields"
-            )
+    if detected_camera_fields:
+        photographic_score += 3
+        strong_photographic_evidence = True
+        photographic_reasons.append(
+            "Camera-related EXIF fields were detected"
+        )
+    elif exif_present:
+        contextual_reasons.append(
+            "Metadata is present but contains no clear camera-capture fields"
+        )
     else:
-        graphical_score += 1
-        graphical_reasons.append(
-            "No camera metadata was detected"
+        contextual_reasons.append(
+            "No camera metadata was detected; metadata may be removed during export, editing, or sharing"
         )
 
     score_difference = abs(graphical_score - photographic_score)
 
+    # Avoid confident classification when the evidence is weak or mostly contextual.
     if graphical_score > photographic_score:
-        profile_type = "graphical"
-        reasons = graphical_reasons
-
-        if score_difference >= 4:
-            confidence = "high"
-        elif score_difference >= 2:
-            confidence = "medium"
-        else:
+        if not strong_graphical_evidence or score_difference < 2:
+            profile_type = "mixed_or_unknown"
             confidence = "low"
+        else:
+            profile_type = "graphical"
+
+            if score_difference >= 4:
+                confidence = "high"
+            else:
+                confidence = "medium"
 
     elif photographic_score > graphical_score:
-        profile_type = "photographic"
-        reasons = photographic_reasons
-
-        if score_difference >= 3:
-            confidence = "high"
-        elif score_difference >= 2:
-            confidence = "medium"
-        else:
+        if not strong_photographic_evidence and score_difference < 2:
+            profile_type = "mixed_or_unknown"
             confidence = "low"
+        else:
+            profile_type = "photographic"
+
+            if strong_photographic_evidence and score_difference >= 3:
+                confidence = "high"
+            else:
+                confidence = "medium"
 
     else:
         profile_type = "mixed_or_unknown"
         confidence = "low"
+
+    if profile_type == "graphical":
+        reasons = graphical_reasons + contextual_reasons
+    elif profile_type == "photographic":
+        reasons = photographic_reasons + contextual_reasons
+    else:
         reasons = (
-            graphical_reasons[:2]
-            + photographic_reasons[:2]
+            graphical_reasons
+            + photographic_reasons
+            + contextual_reasons
         )
 
     return {
@@ -229,16 +353,21 @@ def infer_media_profile(
             "graphical": graphical_score,
             "photographic": photographic_score,
         },
+        "evidence": {
+            "strong_graphical": strong_graphical_evidence,
+            "strong_photographic": strong_photographic_evidence,
+        },
         "disclaimer": (
-            "This is a heuristic media-profile estimate, not a trained "
-            "image classification result."
+            "This is a cautious heuristic media-profile estimate, not a trained "
+            "image classification result. Photorealistic renders, edited images, "
+            "and AI-generated photographs may remain mixed or uncertain."
         ),
     }
-
 
 def detect_image_structure_flags_tool(
     metadata: Dict[str, Any],
     edge_density: float,
+    noise_analysis: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """
     Interpret extracted image properties as transparent heuristic signals.
@@ -250,6 +379,7 @@ def detect_image_structure_flags_tool(
     flags: List[str] = []
     signals: List[Dict[str, Any]] = []
     base_score = 0.2
+    noise_analysis = noise_analysis or {}
 
     dimensions = metadata.get("dimensions", {})
     width = int(dimensions.get("width", 0))
@@ -494,44 +624,56 @@ def detect_image_structure_flags_tool(
         )
     )
 
-        # Edge-density signal
-    has_very_low_edge_density = (
-        edge_density < EDGE_DENSITY_THRESHOLD
-    )
-
-    if has_very_low_edge_density:
+           # Edge-density signal
+    if edge_density < 0.015:
         flags.append("very_low_edge_density")
 
         if profile_type == "graphical":
             edge_contribution = 0.03
-            edge_contribution_label = "+0.03 risk score"
             edge_explanation = (
-                "The measured edge density is below the configured threshold. "
-                "Low edge density is common in flat, smooth, minimalist, or "
-                "illustrative graphics. Because the media profile is graphical, "
-                "this signal receives reduced weight."
+                "The measured edge density is extremely low. This can occur in "
+                "flat, smooth, minimalist, or illustrative graphics. Because the "
+                "media profile is graphical, this signal receives reduced weight."
             )
         else:
             edge_contribution = 0.10
-            edge_contribution_label = "+0.10 risk score"
             edge_explanation = (
-                "The measured edge density is below the configured threshold. "
-                "This can occur in smooth, blurry, minimalist, heavily processed, "
-                "or generated images, so it should not be treated as proof by itself."
+                "The measured edge density is extremely low. This can occur in "
+                "smooth, blurry, heavily processed, or generated images, but it "
+                "should not be treated as proof by itself."
             )
 
-        base_score += edge_contribution
-
-        edge_status = "Unusually low"
+        edge_status = "Extremely low"
         edge_flag = "very_low_edge_density"
+
+    elif edge_density < EDGE_DENSITY_THRESHOLD:
+        flags.append("moderately_low_edge_density")
+
+        edge_contribution = 0.03
+        edge_status = "Moderately low"
+        edge_flag = "moderately_low_edge_density"
+        edge_explanation = (
+            "The measured edge density is moderately below the configured "
+            "threshold. This can occur in smooth photographs, portraits with "
+            "blurred backgrounds, illustrations, processed images, or generated "
+            "content, so it is treated as a weak contextual signal."
+        )
+
     else:
-        edge_status = "At or above threshold"
         edge_contribution = 0.0
-        edge_contribution_label = "No score increase"
+        edge_status = "At or above threshold"
         edge_flag = None
         edge_explanation = (
             "The measured edge density meets the configured threshold."
         )
+
+    base_score += edge_contribution
+
+    edge_contribution_label = (
+        f"+{edge_contribution:.2f} risk score"
+        if edge_contribution > 0
+        else "No score increase"
+    )
 
     signals.append(
         _build_signal(
@@ -551,6 +693,108 @@ def detect_image_structure_flags_tool(
         )
     )
 
+        # Residual-noise consistency signal
+    noise_classification = str(
+        noise_analysis.get("classification", "unknown")
+    )
+    uniformity_score = float(
+        noise_analysis.get("uniformity_score", 0.0)
+    )
+    detector_confidence = float(
+        noise_analysis.get("confidence", 0.0)
+    )
+    residual_mean = float(
+        noise_analysis.get("residual_mean", 0.0)
+    )
+    regions_analyzed = int(
+        noise_analysis.get("regions_analyzed", 0)
+    )
+
+    
+    if noise_classification == "very_uniform":
+        flags.append("very_uniform_residual_noise")
+
+        if profile_type == "graphical":
+            noise_contribution = 0.01
+        else:
+            noise_contribution = 0.03
+
+        noise_status = "Highly uniform"
+        noise_flag = "very_uniform_residual_noise"
+
+        noise_explanation = (
+            "Residual image detail appears highly consistent across the analysed "
+            "regions. This may occur in synthetically generated images, heavily "
+            "processed images, compressed images, digitally rendered graphics, "
+            "or naturally smooth scenes. By itself, this is a weak contextual "
+            "signal and should not be interpreted as evidence of AI generation."
+        )
+
+    elif noise_classification == "slightly_uniform":
+        flags.append("slightly_uniform_residual_noise")
+
+        noise_contribution = 0.01
+        noise_status = "Slightly uniform"
+        noise_flag = "slightly_uniform_residual_noise"
+
+        noise_explanation = (
+            "Residual image detail is moderately consistent across the analysed "
+            "regions. This characteristic may result from denoising, image "
+            "compression, editing, rendering, naturally smooth image content, "
+            "or synthetic generation. It is treated as a weak contextual signal."
+        )
+
+    elif noise_classification == "varied":
+        noise_contribution = 0.0
+        noise_status = "Spatially varied"
+        noise_flag = None
+
+        noise_explanation = (
+            "Residual image detail varies across the analysed regions. This "
+            "pattern is non-specific and does not reliably distinguish "
+            "camera-captured, edited, rendered, or AI-generated images. "
+            "No authenticity inference should be drawn from this signal alone."
+        )
+
+    else:
+        noise_contribution = 0.0
+        noise_status = "Unavailable"
+        noise_flag = None
+
+        noise_explanation = (
+            "Residual-noise analysis did not produce sufficient information "
+            "to interpret this heuristic."
+        )
+
+    base_score += noise_contribution
+
+    signals.append(
+        _build_signal(
+            signal_id="noise_consistency",
+            label="Residual-noise consistency",
+            value={
+                "uniformity_score": uniformity_score,
+                "residual_mean": residual_mean,
+                "confidence": detector_confidence,
+                "regions_analyzed": regions_analyzed,
+                "classification": noise_classification,
+            },
+            display_value=f"{uniformity_score:.3f}",
+            reference=(
+                "Spatial consistency of residual detail across a 4 × 4 image grid"
+            ),
+            status=noise_status,
+            risk_contribution=noise_contribution,
+            contribution_label=(
+                f"+{noise_contribution:.2f} risk score"
+                if noise_contribution > 0
+                else "No score increase"
+            ),
+            explanation=noise_explanation,
+            flag=noise_flag,
+        )
+    )
+    
     return {
         "aspect_ratio": round(aspect_ratio, 3),
         "edge_density": edge_density,

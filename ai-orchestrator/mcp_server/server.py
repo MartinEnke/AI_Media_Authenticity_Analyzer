@@ -13,6 +13,12 @@ from tools.image_tools import (
     compute_edge_density_tool,
     detect_image_structure_flags_tool,
 )
+from tools.image_tools import (
+    extract_metadata_tool,
+    compute_edge_density_tool,
+    detect_noise_consistency_tool,
+    detect_image_structure_flags_tool,
+)
 
 mcp = FastMCP("media-auth-tools")
 
@@ -35,12 +41,20 @@ def extract_metadata(file_path: str) -> dict:
 def compute_edge_density(file_path: str) -> dict:
     return compute_edge_density_tool(file_path)
 
+@mcp.tool()
+def detect_noise_consistency(file_path: str) -> dict:
+    return detect_noise_consistency_tool(file_path)
 
 @mcp.tool()
-def detect_image_structure_flags(metadata: dict, edge_density: float) -> dict:
+def detect_image_structure_flags(
+    metadata: dict,
+    edge_density: float,
+    noise_analysis: dict,
+) -> dict:
     return detect_image_structure_flags_tool(
         metadata=metadata,
         edge_density=edge_density,
+        noise_analysis=noise_analysis,
     )
 
 

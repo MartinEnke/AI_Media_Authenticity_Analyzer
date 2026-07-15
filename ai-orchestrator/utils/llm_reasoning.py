@@ -36,7 +36,7 @@ def get_llm_reasoning(
     analysis: Dict[str, Any],
     security: Dict[str, Any],
     claim: Optional[str] = None,
-    prompt_version: str = "v1",
+    prompt_version: str = "v2",
 ) -> Dict[str, str]:
     if not api_key or client is None:
         fallback = build_reasoning(

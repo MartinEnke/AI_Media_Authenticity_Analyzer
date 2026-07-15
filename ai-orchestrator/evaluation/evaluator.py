@@ -37,7 +37,7 @@ def run_case(app, case, reasoning_mode):
             "flags": [],
             "mcp_tool_trace": [],
             "reasoning_mode": reasoning_mode,
-            "prompt_version": case.get("prompt_version", "v1"),
+            "prompt_version": case.get("prompt_version", "v2"),
         }
     )
 
@@ -53,6 +53,38 @@ def run_case(app, case, reasoning_mode):
     expected_risk = case.get("expected_risk")
     predicted_risk = result.get("risk_level")
     risk_correct = expected_risk == predicted_risk
+    analysis_result = result.get("analysis_result", {})
+    media_profile = analysis_result.get("media_profile", {})
+
+    expected_media_profile = case.get("expected_media_profile")
+    predicted_media_profile = media_profile.get("type")
+    media_profile_correct = (
+        expected_media_profile == predicted_media_profile
+        if expected_media_profile is not None
+        else None
+    )
+
+    expected_profile_confidence = case.get(
+        "expected_profile_confidence"
+    )
+    predicted_profile_confidence = media_profile.get("confidence")
+    profile_confidence_correct = (
+        expected_profile_confidence == predicted_profile_confidence
+        if expected_profile_confidence is not None
+        else None
+    )
+
+    expected_flags = case.get("expected_flags", [])
+    missing_expected_flags = [
+        flag for flag in expected_flags
+        if flag not in flags
+    ]
+
+    forbidden_flags = case.get("forbidden_flags", [])
+    present_forbidden_flags = [
+        flag for flag in forbidden_flags
+        if flag in flags
+    ]
 
     return {
         "case_id": case["id"],
@@ -78,7 +110,19 @@ def run_case(app, case, reasoning_mode):
         "expected_risk": expected_risk,
         "predicted_risk": predicted_risk,
         "risk_correct": risk_correct,
-        "prompt_version": case.get("prompt_version", "v1"),
+        "prompt_version": case.get("prompt_version", "v2"),
+        "expected_media_profile": expected_media_profile,
+        "predicted_media_profile": predicted_media_profile,
+        "media_profile_correct": media_profile_correct,
+        "expected_profile_confidence": expected_profile_confidence,
+        "predicted_profile_confidence": predicted_profile_confidence,
+        "profile_confidence_correct": profile_confidence_correct,
+        "expected_flags": expected_flags,
+        "missing_expected_flags": missing_expected_flags,
+        "forbidden_flags": forbidden_flags,
+        "present_forbidden_flags": present_forbidden_flags,
+        "expected_flags_passed": not missing_expected_flags,
+        "forbidden_flags_passed": not present_forbidden_flags,
     }
 
 
